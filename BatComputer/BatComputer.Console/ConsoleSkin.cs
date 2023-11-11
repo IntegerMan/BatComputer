@@ -13,4 +13,5 @@ public abstract class ConsoleSkin {
     public virtual string ErrorEmoji { get; } = ":stop_sign:";
     public virtual string SuccessStyle { get; } = "Green";
     public virtual string SuccessEmoji { get; } = ":check_mark_button:";
+    public virtual string AgentStyle { get; } = "Cyan";
 }

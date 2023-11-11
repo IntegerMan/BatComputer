@@ -8,7 +8,8 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override Spinner Spinner => Spinner.Known.Default;
 
     public override string NormalStyle => "Yellow";
-    public override Spectre.Console.Color NormalColor { get; } = Spectre.Console.Color.Yellow;
+    public override Color NormalColor { get; } = Color.Yellow;
 
     public override string SuccessStyle => "gold1";
+    public override string AgentStyle => "grey69";
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Azure;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -27,8 +29,31 @@ public class BatComputerApp
 
         AnsiConsole.Status().Start("Loading Configuration", LoadSettings(args));
 
+        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question for OpenAI:[/]");
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[Yellow]Program complete[/]");
+
+        OpenAIClient aiClient = new(new Uri(_settings.AzureOpenAiEndpoint), new AzureKeyCredential(_settings.AzureOpenAiKey));
+
+        AnsiConsole.Status().Start("Waiting for response", ctx =>
+        {
+            ctx.Spinner(Skin.Spinner);
+
+            ChatCompletionsOptions chatOptions = new()
+            {
+                ChoiceCount = 1,
+                DeploymentName = "gpt35turbo", // TODO: Take from settings
+                User = Guid.NewGuid().ToString(), // TODO: Machine name
+            };
+            chatOptions.Messages.Add(new ChatMessage(ChatRole.System, "You are an AI assistant named Alfred. Respond to the user as if the user was Batman"));
+            chatOptions.Messages.Add(new ChatMessage(ChatRole.User, userText));
+
+            Response<ChatCompletions> result = aiClient.GetChatCompletions(chatOptions);
+
+            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result.Value.Choices.First().Message.Content}[/]"); // TODO: Escape markup
+        });
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
 
         return 0;
     }
