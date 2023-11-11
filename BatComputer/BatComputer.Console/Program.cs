@@ -2,6 +2,10 @@
 
 internal class Program {
     private static void Main(string[] args) {
-        AnsiConsole.Markup("[underline red]Hello[/] World!");
+        AnsiConsole.WriteLine("Welcome to the");
+        AnsiConsole.Write(new FigletText("Bat Computer")
+            .Centered()
+            .Color(Color.Yellow));
+        AnsiConsole.Write(new Text("Version 0.0.1"));
     }
 }
