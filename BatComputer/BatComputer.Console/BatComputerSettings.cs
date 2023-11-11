@@ -2,14 +2,18 @@
 
 namespace MattEland.BatComputer.ConsoleApp;
 
-public class BatComputerSettings : IValidatableObject {
+public class BatComputerSettings {
     [Required]
     public string AzureAiServicesEndpoint { get; set; }
     [Required]
-    public string AzureAiServicesKey { get; internal set; }
+    public string AzureAiServicesKey { get; set; }
+    [Required]
+    public string AzureOpenAiEndpoint { get; set; }
+    [Required]
+    public string AzureOpenAiKey { get; set; }
 
-    public IEnumerable<System.ComponentModel.DataAnnotations.ValidationResult> Validate(ValidationContext validationContext) {
-        List<System.ComponentModel.DataAnnotations.ValidationResult> results = new();
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) {
+        List<ValidationResult> results = new();
 
         Validator.TryValidateObject(this, validationContext, results);
 

@@ -9,36 +9,32 @@ namespace MattEland.BatComputer.ConsoleApp;
 internal class Program {
     private static int Main(string[] args) {
 
-        // Using UTF8 allows more capabilities for Spectre Console.
-        Console.OutputEncoding = Encoding.UTF8;
-        Console.InputEncoding = Encoding.UTF8;
+        try {
+            // Using UTF8 allows more capabilities for Spectre Console.
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.InputEncoding = Encoding.UTF8;
 
-        // Stylize the app
-        ConsoleSkin skin = new BatComputerSkin();
-        Color colorPrimary = Color.Yellow;
-        Style primary = new(foreground: colorPrimary);
-        AnsiConsole.Foreground = colorPrimary;
+            // Stylize the app
+            ConsoleSkin skin = new BatComputerSkin();
+            Color colorPrimary = Color.Yellow;
+            Style primary = new(foreground: colorPrimary);
+            AnsiConsole.Foreground = colorPrimary;
 
-        // Show the main welcome header
-        ShowWelcomeMenu(colorPrimary, primary, skin);
+            // Show the main welcome header
+            ShowWelcomeMenu(colorPrimary, primary, skin);
 
-        BatComputerSettings settings = new();
-        AnsiConsole.Status().Start("Loading Configuration", LoadSettings(args, skin, settings));
+            BatComputerSettings settings = new();
+            AnsiConsole.Status().Start("Loading Configuration", LoadSettings(args, skin, settings));
 
-        if (!settings.IsValid) {
-            AnsiConsole.MarkupLine("[Red]Settings are in an invalid state:[/]");
-            foreach (System.ComponentModel.DataAnnotations.ValidationResult violation in settings.Validate(new ValidationContext(settings))) {
-                AnsiConsole.MarkupLine($"[Red]   - {violation.ErrorMessage}[/]");
-            }
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[Red]The program will now terminate.[/]");
+            AnsiConsole.MarkupLine("[Yellow]Program complete[/]");
+
+            return 0;
+        }
+        catch (Exception ex) {
+            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             return -1;
         }
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[Yellow]Program complete[/]");
-
-        return 0;
     }
 
     private static Action<StatusContext> LoadSettings(string[] args, ConsoleSkin skin, BatComputerSettings settings) {
@@ -48,15 +44,30 @@ internal class Program {
             // Load settings
             IConfigurationRoot config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddUserSecrets(Assembly.GetExecutingAssembly())
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
 
+            AnsiConsole.MarkupLine("[Yellow]Reading configuration data[/]");
             ReadRequiredSetting(config, "AzureAIEndpoint", v => settings.AzureAiServicesEndpoint = v);
             ReadRequiredSetting(config, "AzureAIKey", v => settings.AzureAiServicesKey = v);
+            ReadRequiredSetting(config, "AzureOpenAIEndpoint", v => settings.AzureOpenAiEndpoint = v);
+            ReadRequiredSetting(config, "AzureOpenAIKey", v => settings.AzureOpenAiKey = v);
 
-            ctx.Status("Finished reading config settings");
+            ctx.Status("Validating settings");
+            AnsiConsole.WriteLine();
 
+            if (!settings.IsValid) {
+                StringBuilder sb = new();
+                sb.AppendLine("Settings were in an invalid state after all settings were parsed:");
+                foreach (System.ComponentModel.DataAnnotations.ValidationResult violation in settings.Validate(new ValidationContext(settings))) {
+                    sb.AppendLine($"- {violation.ErrorMessage}");
+                }
+                throw new InvalidOperationException(sb.ToString());
+            }
+
+            AnsiConsole.MarkupLine("[Yellow]Finished reading config settings[/]");
             AnsiConsole.WriteLine();
         };
     }
@@ -64,9 +75,10 @@ internal class Program {
     private static void ReadRequiredSetting(IConfigurationRoot config, string settingName, Action<string> applyAction) {
         string? value = config[settingName];
         if (string.IsNullOrEmpty(value)) {
-            AnsiConsole.MarkupLine($"[Red]Could not read the config value for {settingName}[/]");
+            AnsiConsole.MarkupLine($"[Red]:stop_sign: Could not read the config value for {settingName}[/]");
         } else {
             applyAction(value);
+            AnsiConsole.MarkupLine($"[Green]:check_mark_button: Read setting {settingName}[/]");
         }
     }
 
