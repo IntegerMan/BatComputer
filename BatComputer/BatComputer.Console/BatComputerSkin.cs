@@ -11,5 +11,5 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override Color NormalColor { get; } = Color.Yellow;
 
     public override string SuccessStyle => "gold1";
-    public override string AgentStyle => "grey69";
+    public override string AgentStyle => "steelblue";
 }

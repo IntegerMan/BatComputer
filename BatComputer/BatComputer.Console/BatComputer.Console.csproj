@@ -36,4 +36,8 @@
     <PackageReference Include="Spectre.Console.Json" Version="0.47.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BatComputer.Kernel\BatComputer.Kernel.csproj" />
+  </ItemGroup>
+
 </Project>

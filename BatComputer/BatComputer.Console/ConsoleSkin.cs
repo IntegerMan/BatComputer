@@ -14,4 +14,5 @@ public abstract class ConsoleSkin {
     public virtual string SuccessStyle { get; } = "Green";
     public virtual string SuccessEmoji { get; } = ":check_mark_button:";
     public virtual string AgentStyle { get; } = "Cyan";
+    public virtual string DebugStyle { get; } = "grey69";
 }

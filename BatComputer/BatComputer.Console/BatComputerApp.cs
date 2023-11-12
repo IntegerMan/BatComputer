@@ -1,25 +1,32 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
+﻿using MattEland.BatComputer.Kernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
+using Spectre.Console.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
 public class BatComputerApp
 {
-    private const string SystemText = "You are an AI assistant named Alfred. Respond to the user as if the user was Batman";
+    private const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
+    private const string ChoiceTypeAQuestion = "Type in a question";
+    private const string ChoiceQuit = "Quit";
     private readonly BatComputerSettings _settings = new();
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
-    public async Task<int> RunAsync(string[] args)
+    public async Task<int> RunAsync()
     {
         // Stylize the app
         Color colorPrimary = Skin.NormalColor;
@@ -29,34 +36,33 @@ public class BatComputerApp
         // Show the main welcome header
         ShowWelcomeMenu(colorPrimary, primary);
 
-        AnsiConsole.Status().Start("Loading Configuration", LoadSettings(args));
+        AnsiConsole.Status().Start("Loading Configuration", LoadSettings);
 
-        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question for OpenAI:[/]");
+        SpectreLoggerFactory loggerFactory = new(Skin);
+        BatKernel batKernel = new(_settings, loggerFactory);
+
         AnsiConsole.WriteLine();
 
-        KernelBuilder builder = new();
-        IKernel kernel = builder.WithAzureOpenAIChatCompletionService(_settings.OpenAiDeploymentName, _settings.AzureOpenAiEndpoint, _settings.AzureOpenAiKey)
-            .Build();
-       
-        AzureKeyCredential keyCredential = new AzureKeyCredential(_settings.AzureOpenAiKey);
-        OpenAIClient aiClient = new(new Uri(_settings.AzureOpenAiEndpoint), keyCredential);
-        OpenAIRequestSettings requestSettings = new OpenAIRequestSettings()
+        SelectionPrompt<string> choices = new SelectionPrompt<string>()
+                                                        .Title("Select an action")
+                                                        .AddChoices([ChoiceTypeAQuestion, ChoiceQuit]);
+
+        string choice;
+        do
         {
-            ChatSystemPrompt = SystemText,
-            ResultsPerPrompt = 1,
-            MaxTokens = 150
-        };
+            choice = AnsiConsole.Prompt(choices);
 
-        await AnsiConsole.Status().StartAsync("Waiting for response", async ctx =>
-        {
-            ctx.Spinner(Skin.Spinner);
+            switch (choice)
+            {
+                case ChoiceTypeAQuestion:
+                    await MakeChatRequestAsync(batKernel);
+                    break;
 
-            ISKFunction func = kernel.CreateSemanticFunction(userText, requestSettings);
-
-            Microsoft.SemanticKernel.Orchestration.KernelResult result = await kernel.RunAsync(func);
-
-            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result}[/]"); // TODO: Escape markup
-        });
+                case ChoiceQuit:
+                    AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Shutting down[/]");
+                    break;
+            }
+        } while (choice != ChoiceQuit);
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
@@ -64,44 +70,66 @@ public class BatComputerApp
         return 0;
     }
 
-    private Action<StatusContext> LoadSettings(string[] args)
+    private async Task MakeChatRequestAsync(BatKernel batKernel)
     {
-        return ctx =>
+        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question for OpenAI:[/]");
+        AnsiConsole.WriteLine();
+
+        await AnsiConsole.Status().StartAsync("Prompting...", async ctx =>
         {
             ctx.Spinner(Skin.Spinner);
 
-            // Load settings
-            IConfigurationRoot config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets(GetType().Assembly)
-                .AddEnvironmentVariables()
-                .AddCommandLine(args)
-                .Build();
+            ctx.Status("Planning requests...");
+            Plan plan = await batKernel.Planner.CreatePlanAsync(userText);
 
-            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Reading configuration data[/]");
-            ReadRequiredSetting(config, "AzureAIEndpoint", v => _settings.AzureAiServicesEndpoint = v);
-            ReadRequiredSetting(config, "AzureAIKey", v => _settings.AzureAiServicesKey = v);
-            ReadRequiredSetting(config, "AzureOpenAIEndpoint", v => _settings.AzureOpenAiEndpoint = v);
-            ReadRequiredSetting(config, "AzureOpenAIKey", v => _settings.AzureOpenAiKey = v);
-            ReadRequiredSetting(config, "OpenAIDeploymentName", v => _settings.OpenAiDeploymentName = v);
-
-            ctx.Status("Validating settings");
             AnsiConsole.WriteLine();
 
-            if (!_settings.IsValid)
+            string json = JsonSerializer.Serialize(plan);
+            AnsiConsole.Write(new JsonText(json));
+            AnsiConsole.WriteLine();
+
+            ctx.Status("Requesting data...");
+
+            KernelResult result = await batKernel.Kernel.RunAsync(plan);
+            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(result.GetValue<string>() ?? "")}[/]");
+        });
+    }
+
+    private void LoadSettings(StatusContext ctx)
+    {
+        ctx.Spinner(Skin.Spinner);
+
+        // Load settings
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddUserSecrets(GetType().Assembly)
+            .AddEnvironmentVariables()
+            .AddCommandLine(Environment.GetCommandLineArgs())
+            .Build();
+
+        AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Reading configuration data[/]");
+        ReadRequiredSetting(config, "AzureAIEndpoint", v => _settings.AzureAiServicesEndpoint = v);
+        ReadRequiredSetting(config, "AzureAIKey", v => _settings.AzureAiServicesKey = v);
+        ReadRequiredSetting(config, "AzureOpenAIEndpoint", v => _settings.AzureOpenAiEndpoint = v);
+        ReadRequiredSetting(config, "AzureOpenAIKey", v => _settings.AzureOpenAiKey = v);
+        ReadRequiredSetting(config, "OpenAIDeploymentName", v => _settings.OpenAiDeploymentName = v);
+
+        ctx.Status("Validating settings");
+        AnsiConsole.WriteLine();
+
+        if (!_settings.IsValid)
+        {
+            StringBuilder sb = new();
+            sb.AppendLine("Settings were in an invalid state after all settings were parsed:");
+            foreach (System.ComponentModel.DataAnnotations.ValidationResult violation in _settings.Validate(new ValidationContext(_settings)))
             {
-                StringBuilder sb = new();
-                sb.AppendLine("Settings were in an invalid state after all settings were parsed:");
-                foreach (System.ComponentModel.DataAnnotations.ValidationResult violation in _settings.Validate(new ValidationContext(_settings)))
-                {
-                    sb.AppendLine($"- {violation.ErrorMessage}");
-                }
-                throw new InvalidOperationException(sb.ToString());
+                sb.AppendLine($"- {violation.ErrorMessage}");
             }
+            throw new InvalidOperationException(sb.ToString());
+        }
 
-            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Finished reading config settings[/]");
-            AnsiConsole.WriteLine();
-        };
+        AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Finished reading config settings[/]");
+        AnsiConsole.WriteLine();
     }
 
     private void ReadRequiredSetting(IConfigurationRoot config, string settingName, Action<string> applyAction)
@@ -110,8 +138,7 @@ public class BatComputerApp
         if (string.IsNullOrEmpty(value))
         {
             AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not read the config value for {settingName}[/]");
-        }
-        else
+        } else
         {
             applyAction(value);
             AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]{Skin.SuccessEmoji} Read setting {settingName}[/]");

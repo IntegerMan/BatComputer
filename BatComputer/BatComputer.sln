@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Console", "BatComputer.Console\BatComputer.Console.csproj", "{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Console", "BatComputer.Console\BatComputer.Console.csproj", "{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Kernel", "BatComputer.Kernel\BatComputer.Kernel.csproj", "{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
