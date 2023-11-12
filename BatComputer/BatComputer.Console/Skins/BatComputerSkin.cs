@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp;
+namespace MattEland.BatComputer.ConsoleApp.Skins;
 
 public sealed class BatComputerSkin : ConsoleSkin {
     public override string AppName => "Bat Computer";
@@ -8,7 +8,7 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override Spinner Spinner => Spinner.Known.Default;
 
     public override string NormalStyle => "Yellow";
-    public override Color NormalColor { get; } = Color.Yellow;
+    public override Color NormalColor => Color.Yellow;
 
     public override string SuccessStyle => "gold1";
     public override string AgentStyle => "steelblue";
@@ -16,4 +16,5 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override string AgentName => "Alfred";
 
     public override string AccentStyle => "darkorange";
+    public override Color AccentColor => Color.DarkOrange;
 }

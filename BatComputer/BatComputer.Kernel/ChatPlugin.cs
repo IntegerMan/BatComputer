@@ -2,6 +2,7 @@
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
 using System.ComponentModel;
+using JetBrains.Annotations;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -10,18 +11,26 @@ public class ChatPlugin
     private const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
 
     private readonly IKernel _kernel;
-    private ISKFunction _chatFunc;
+    private readonly ISKFunction _chatFunc;
+    //private readonly ISKFunction _webFunc;
 
     public ChatPlugin(IKernel kernel)
     {
         _kernel = kernel;
-        string prompt = @"Bot: How can I help you?
+        OpenAIRequestSettings requestSettings = new() { ChatSystemPrompt = SystemText, ResultsPerPrompt = 1 };
+
+        string chatPrompt = @"Bot: How can I help you?
 User: {{$input}}
 
 ---------------------------------------------
 
 Bot: ";
-        _chatFunc = kernel.CreateSemanticFunction(prompt, new OpenAIRequestSettings() { ChatSystemPrompt = SystemText, ResultsPerPrompt = 1 }, "Chat", "SemanticFunctions", "Gets a response to a conversational query");
+        _chatFunc = kernel.CreateSemanticFunction(chatPrompt, requestSettings, "Chat", "SemanticFunctions");
+
+        /*
+        string webPrompt = "Make a GET request to {{$input}} and describe the text of that site.";
+        _webFunc = kernel.CreateSemanticFunction(webPrompt, requestSettings, "WebSummarize", "SemanticFunctions");
+        */
     }
 
     [SKFunction, Description("Gets a response to a question")]
@@ -30,4 +39,13 @@ Bot: ";
         KernelResult result = await _kernel.RunAsync(input, _chatFunc);
         return result.GetValue<string>() ?? "";
     }
+
+    /*
+    [SKFunction, Description("Summarizes the contents of a web page"), UsedImplicitly]
+    public async Task<string> InterpretWebPage([Description("A web page URL the user is interested in")] string url)
+    {
+        KernelResult result = await _kernel.RunAsync(url, _webFunc);
+        return result.GetValue<string>() ?? "";
+    }
+    */
 }

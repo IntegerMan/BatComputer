@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using System.Reflection;
+using MattEland.BatComputer.ConsoleApp.Skins;
 
 namespace MattEland.BatComputer.ConsoleApp;
 

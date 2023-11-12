@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
 
 namespace MattEland.BatComputer.Kernel;
@@ -11,36 +12,52 @@ public class BatKernel
 {
     public IKernel Kernel { get; }
     public SequentialPlanner Planner { get; }
+    private readonly ChatPlugin _chat;
 
     public BatKernel(BatComputerSettings settings, ILoggerFactory loggerFactory)
     {
         KernelBuilder builder = new();
-        Kernel = builder
-            .WithLoggerFactory(loggerFactory)
+        builder.WithLoggerFactory(loggerFactory);
+        Kernel = BuildKernel(settings, builder);
+
+        _chat = new ChatPlugin(Kernel);
+
+        ImportFunctions();
+
+        Planner = CreatePlanner();
+        Planner.WithInstrumentation(loggerFactory);
+    }
+
+    public BatKernel(BatComputerSettings settings)
+    {
+        KernelBuilder builder = new();
+        Kernel = BuildKernel(settings, builder);
+
+        _chat = new ChatPlugin(Kernel);
+
+        ImportFunctions();
+
+        Planner = CreatePlanner();
+    }
+    private static IKernel BuildKernel(BatComputerSettings settings, KernelBuilder builder)
+    {
+        return builder
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
                                                   settings.AzureOpenAiEndpoint,
                                                   settings.AzureOpenAiKey,
                                                   setAsDefault: true)
-            /*
-            .WithAzureOpenAIImageGenerationService(settings.AzureOpenAiEndpoint, 
-                                                   settings.AzureOpenAiKey)
-            */
+            // TODO: Add ImageGen Service
+            // TODO: Add Embeddings
             .Build();
-
-        ImportFunctions();
-
-
-        Planner = CreatePlanner();
-
-        Planner.WithInstrumentation(loggerFactory);
     }
 
     private void ImportFunctions()
     {
-        Kernel.ImportFunctions(new TimePlugin(), "Time");
+        Kernel.ImportFunctions(_chat, "Chat");
+        Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
         Kernel.ImportFunctions(new MathPlugin(), "Math");
         Kernel.ImportFunctions(new TextPlugin(), "Strings");
-        Kernel.ImportFunctions(new ChatPlugin(Kernel), "Chat");
+        Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
         // TODO: Add a memory plugin
@@ -62,22 +79,19 @@ public class BatKernel
             _plannerConfig.ExcludedFunctions.Contains(f.Name) ||
             _plannerConfig.ExcludedPlugins.Contains(f.PluginName);
 
-    public BatKernel(BatComputerSettings settings)
+    public async Task<string> GetChatResponseAsync(string prompt)
     {
-        KernelBuilder builder = new();
-        Kernel = builder
-            .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
-                                                  settings.AzureOpenAiEndpoint,
-                                                  settings.AzureOpenAiKey,
-                                                  setAsDefault: true)
-            /*
-            .WithAzureOpenAIImageGenerationService(settings.AzureOpenAiEndpoint, 
-                                                   settings.AzureOpenAiKey)
-            */
-            .Build();
+        return await _chat.GetChatResponse(prompt);
+    }
 
-        ImportFunctions();
+    public async Task<Plan> PlanAsync(string userText)
+    {
+        string goal = $"User: {userText}" + """
 
-        Planner = CreatePlanner();
+                                            ---------------------------------------------
+
+                                            Respond to this statement. If the user is requesting information about a web page by URL, make a GET request for that data and summarize the contents.
+                                            """;
+        return await Planner.CreatePlanAsync(goal);
     }
 }

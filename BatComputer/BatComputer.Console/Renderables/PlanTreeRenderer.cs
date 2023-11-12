@@ -1,8 +1,9 @@
-﻿using MattEland.BatComputer.Kernel;
+﻿using MattEland.BatComputer.ConsoleApp.Skins;
+using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp;
+namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
 public static class PlanTreeRenderer
 {
@@ -57,14 +58,13 @@ public static class PlanTreeRenderer
                 if (kvp.Key == "PLAN.RESULT")
                     continue;
 
-                if (kvp.Key == target)
-                {
-                    state.AddNode($"[{skin.AccentStyle}]{kvp.Key}[/]:[{skin.NormalStyle}]{kvp.Value}[/]");
-                }
-                else
-                {
-                    state.AddNode($"[{skin.NormalStyle}]{kvp.Key}[/]:[{skin.DebugStyle}]{kvp.Value}[/]");
-                }
+                string valueText = kvp.Value.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase) 
+                    ? "<A HTML Document>" 
+                    : Markup.Escape(kvp.Value);
+
+                state.AddNode(kvp.Key == target
+                    ? $"[{skin.AccentStyle}]{Markup.Escape(kvp.Key)}[/]:[{skin.NormalStyle}]{valueText}[/]"
+                    : $"[{skin.NormalStyle}]{Markup.Escape(kvp.Key)}[/]:[{skin.DebugStyle}]{valueText}[/]");
             }
         }
 
@@ -73,14 +73,9 @@ public static class PlanTreeRenderer
             TreeNode outputs = tree.AddNode("Outputs");
             foreach (string output in plan.Outputs)
             {
-                if (output == target)
-                {
-                    outputs.AddNode($":goal_net: [{skin.AccentStyle}]{output}[/]");
-                }
-                else
-                {
-                    outputs.AddNode($":outbox_tray: [{skin.NormalStyle}]{output}[/]");
-                }
+                outputs.AddNode(output == target
+                    ? $":goal_net: [{skin.AccentStyle}]{output}[/]"
+                    : $":outbox_tray: [{skin.NormalStyle}]{output}[/]");
             }
         }
     }

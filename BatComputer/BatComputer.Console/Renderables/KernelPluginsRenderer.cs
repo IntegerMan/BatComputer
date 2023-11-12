@@ -2,15 +2,17 @@
 using Microsoft.SemanticKernel;
 using Spectre.Console;
 using System.Text;
+using MattEland.BatComputer.ConsoleApp.Skins;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;
+
 public static class KernelPluginsRenderer
 {
     public static void RenderKernelPluginsChart(this BatKernel kernel, ConsoleSkin skin)
     {
         List<FunctionView> funcs = GetActiveFunctions(kernel);
 
-        string headerMarker = $"[{skin.SuccessStyle}]{funcs.Count} Plugin Functions Detected[/]";
+        string headerMarker = $"[{skin.NormalStyle}]{funcs.Count} Plugin Functions Detected[/]";
 
         IOrderedEnumerable<IGrouping<string, FunctionView>> funcsByPlugin =
             funcs.GroupBy(f => f.PluginName)
@@ -29,7 +31,7 @@ public static class KernelPluginsRenderer
     {
         List<FunctionView> funcs = GetActiveFunctions(kernel);
 
-        string headerMarker = $"[{skin.SuccessStyle}]{funcs.Count} Plugin Functions Detected[/]";
+        string headerMarker = $"[{skin.NormalStyle}]{funcs.Count} Plugin Functions Detected[/]";
 
         AnsiConsole.MarkupLine(headerMarker);
 
@@ -66,10 +68,9 @@ public static class KernelPluginsRenderer
     {
         IReadOnlyList<FunctionView> functions = kernel.Kernel.Functions.GetFunctionViews();
 
-        List<FunctionView> funcs = functions.Where(f => !kernel.IsFunctionExcluded(f))
-                                            .OrderBy(f => f.PluginName)
-                                            .ThenBy(f => f.Name)
-                                            .ToList();
-        return funcs;
+        return functions.Where(f => !kernel.IsFunctionExcluded(f))
+                        .OrderBy(f => f.PluginName)
+                        .ThenBy(f => f.Name)
+                        .ToList();
     }
 }

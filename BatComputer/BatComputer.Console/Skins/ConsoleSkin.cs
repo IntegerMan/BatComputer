@@ -1,7 +1,6 @@
-﻿using SixLabors.ImageSharp;
-using Spectre.Console;
+﻿using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp;
+namespace MattEland.BatComputer.ConsoleApp.Skins;
 
 public abstract class ConsoleSkin {
     public abstract string AppName { get; }
@@ -10,6 +9,7 @@ public abstract class ConsoleSkin {
     public virtual string NormalStyle { get; } = "White";
     public virtual Spectre.Console.Color NormalColor { get; } = Spectre.Console.Color.White;
     public virtual string AccentStyle { get; } = "Blue";
+    public virtual Spectre.Console.Color AccentColor { get; } = Spectre.Console.Color.Blue;
     public virtual string ErrorStyle { get; } = "Red";
     public virtual string ErrorEmoji { get; } = ":stop_sign:";
     public virtual string SuccessStyle { get; } = "Green";

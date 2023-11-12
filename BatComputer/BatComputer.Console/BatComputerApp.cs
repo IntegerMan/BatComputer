@@ -1,71 +1,105 @@
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.Kernel;
-using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
-using Spectre.Console.Json;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Json;
+using MattEland.BatComputer.ConsoleApp.Skins;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
 public class BatComputerApp
 {
-    private const string ChoiceTypeAQuestion = "Type in a question";
-    private const string ChoiceListPlugins = "List plugin functions";
-    private const string ChoiceQuit = "Quit";
-
     private readonly BatComputerSettings _settings = new();
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
     public async Task<int> RunAsync()
     {
-        // Stylize the app
-        Color colorPrimary = Skin.NormalColor;
-        Style primary = new(foreground: colorPrimary);
-        AnsiConsole.Foreground = colorPrimary;
-
-        // Show the main welcome header
-        ShowWelcomeMenu(colorPrimary, primary);
+        WelcomeRenderer.ShowWelcome(Skin);
 
         LoadSettings();
 
         BatKernel batKernel = new(_settings);
         batKernel.RenderKernelPluginsChart(Skin);
 
+        await RunMainLoopAsync(batKernel);
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
+
+        return 0;
+    }
+
+    private async Task RunMainLoopAsync(BatKernel batKernel)
+    {
+        string ChoiceKernel = $"Query {Skin.AppNamePrefix} {Skin.AppName}";
+        string ChoiceChat = $"Chat with {Skin.AgentName}";
+        const string ChoiceListPlugins = "List Plugins";
+        const string ChoiceQuit = "Quit";
+
+        List<string> selectionOptions = new()
+        {
+            ChoiceKernel,
+            ChoiceChat,
+            ChoiceListPlugins,
+            ChoiceQuit
+        };
+
+        // TODO: This would allow a switch if we used Enums instead of strings
         SelectionPrompt<string> choices = new SelectionPrompt<string>()
-                                                        .Title("Select an action")
-                                                        .AddChoices([ChoiceTypeAQuestion, ChoiceListPlugins, ChoiceQuit]);
+                .Title($"[{Skin.NormalStyle}]Select an action[/]")
+                .HighlightStyle(Skin.AccentStyle)
+                .AddChoices(selectionOptions);
 
         string choice;
         do
         {
             choice = AnsiConsole.Prompt(choices);
 
-            switch (choice)
+            if (choice == ChoiceKernel)
             {
-                case ChoiceTypeAQuestion:
-                    await MakeChatRequestAsync(batKernel);
-                    break;
+                string prompt = GetUserText($"[{Skin.NormalStyle}]Type your request:[/]");
 
-                case ChoiceListPlugins:
-                    batKernel.RenderKernelPluginsTable(Skin);
-                    break;
+                string response = await GetKernelPromptResponseAsync(batKernel, prompt);
 
-                case ChoiceQuit:
-                    AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Shutting down[/]");
-                    break;
+                DisplayChatResponse(response);
+            }
+            else if (choice == ChoiceChat)
+            {
+                string chatPrompt = GetUserText($"[{Skin.NormalStyle}]Type your message:[/]");
+
+                string chatResponse = await GetChatPromptResponseAsync(batKernel, chatPrompt);
+
+                DisplayChatResponse(chatResponse);
+            }
+            else if (choice == ChoiceListPlugins)
+            {
+                batKernel.RenderKernelPluginsTable(Skin);
+            }
+            else if (choice == ChoiceQuit)
+            {
+                AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Shutting down[/]");
+            }
+            else
+            {
+                throw new NotSupportedException($"Choice {choice} was not implemented in {nameof(RunMainLoopAsync)}");
             }
         } while (choice != ChoiceQuit);
+    }
+
+    private static string GetUserText(string message)
+    {
+        string prompt = AnsiConsole.Ask<string>(message);
 
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
 
-        return 0;
+        return prompt;
+    }
+
+    private void DisplayChatResponse(string chatResponse)
+    {
+        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Skin.AgentName}: {chatResponse}[/]");
+        AnsiConsole.WriteLine();
     }
 
     private void LoadSettings()
@@ -83,35 +117,46 @@ public class BatComputerApp
         });
     }
 
-    private async Task MakeChatRequestAsync(BatKernel batKernel)
+    private async Task<string> GetKernelPromptResponseAsync(BatKernel batKernel, string prompt)
     {
-        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question:[/]");
         Plan plan;
         try
         {
-            plan = await GeneratePlanAsync(batKernel, userText);
+            plan = await GeneratePlanAsync(batKernel, prompt);
         }
         catch (SKException ex)
         {
-            AnsiConsole.WriteException(ex);
+            // It's possible to reach the limits of what's possible with the planner. When that happens, handle it gracefully
+            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase))
+            {
+                AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Not possible to create plan for goal with available functions. Sending as chat request.[/]");
+            }
+            else
+            {
+                // Not an impossible plan. Display additional details
+                AnsiConsole.WriteException(ex);
+                AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
+            }
 
-            AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send the request on for chat response without planning.[/]");
-            // TODO: Actually do this
-
-            return;
+            // Fallback to handling via chat request
+            return await GetChatPromptResponseAsync(batKernel, prompt);
         }
 
+        // Show the user a plan before we execute it
         DisplayPlanDescription(plan);
 
+        // Execute the plan step by step and show progress
         await ExecutePlanAsync(batKernel, plan);
 
+        // Display the final state of the plan
         plan.RenderTree(Skin);
 
-        string response = GetResponse(plan);
-
-        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Skin.AgentName}: {response}[/]");
-        AnsiConsole.WriteLine();
+        // Get the response from the plan
+        return GetResponse(plan);
     }
+
+    private static async Task<string> GetChatPromptResponseAsync(BatKernel batKernel, string prompt) 
+        => await batKernel.GetChatResponseAsync(prompt);
 
     private void DisplayPlanDescription(Plan plan, bool displayTargetVariable = false)
     {
@@ -160,7 +205,7 @@ public class BatComputerApp
                     tasks.Add(task);
                 }
 
-                // Sequentially execute each sstep
+                // Sequentially execute each step
                 foreach (ProgressTask task in tasks)
                 {
                     // Have the UI show it as in progress
@@ -194,38 +239,9 @@ public class BatComputerApp
         {
             ctx.Spinner(Skin.Spinner);
 
-            string goal = $"User: {userText}" + """
-
----------------------------------------------
-
-Respond to this statement.
-""";
-            plan = await batKernel.Planner.CreatePlanAsync(userText);
+            plan = await batKernel.PlanAsync(userText);
         });
 
         return plan!;
-    }
-
-    private static void DisplayJson(object? input)
-    {
-        string json = JsonSerializer.Serialize(input);
-        AnsiConsole.Write(new JsonText(json));
-        AnsiConsole.WriteLine();
-    }
-
-    private void ShowWelcomeMenu(Color colorPrimary, Style primary)
-    {
-        AnsiConsole.WriteLine($"Welcome to {Skin.AppNamePrefix}".TrimEnd());
-
-        AnsiConsole.Write(new FigletText(FigletFont.Default, Skin.AppName)
-            .Centered()
-            .Color(colorPrimary));
-
-        Version version = GetType().Assembly.GetName().Version!;
-
-        AnsiConsole.Write(new Text($"Version {version}", style: primary).RightJustified());
-        AnsiConsole.WriteLine();
-
-        AnsiConsole.WriteLine();
     }
 }
