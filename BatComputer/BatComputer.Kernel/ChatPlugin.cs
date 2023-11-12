@@ -2,7 +2,6 @@
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
 using System.ComponentModel;
-using JetBrains.Annotations;
 
 namespace MattEland.BatComputer.Kernel;
 

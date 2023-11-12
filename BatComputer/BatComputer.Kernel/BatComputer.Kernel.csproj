@@ -13,4 +13,8 @@
 	  <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta6" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj" />
+	</ItemGroup>
+
 </Project>

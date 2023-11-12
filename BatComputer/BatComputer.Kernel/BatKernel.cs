@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Azure;
+﻿using BatComputer.Plugins.Weather;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
@@ -58,6 +59,7 @@ public class BatKernel
         Kernel.ImportFunctions(new MathPlugin(), "Math");
         Kernel.ImportFunctions(new TextPlugin(), "Strings");
         Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
+        Kernel.ImportFunctions(new OpenMeteoPlugin(), "OpenMeteo");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
         // TODO: Add a memory plugin
