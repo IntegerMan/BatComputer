@@ -25,9 +25,9 @@ Bot: ";
     }
 
     [SKFunction, Description("Gets a response to a question")]
-    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string prompt)
+    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input)
     {
-        KernelResult result = await _kernel.RunAsync(prompt, _chatFunc);
+        KernelResult result = await _kernel.RunAsync(input, _chatFunc);
         return result.GetValue<string>() ?? "";
     }
 }

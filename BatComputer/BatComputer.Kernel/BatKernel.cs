@@ -29,8 +29,19 @@ public class BatKernel
         Kernel.ImportFunctions(new Microsoft.SemanticKernel.Plugins.Core.TimePlugin(), "TimePlugin");
         Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
 
-        Planner = new SequentialPlanner(Kernel);
+        Planner = CreatePlanner();
+
         Planner.WithInstrumentation(loggerFactory);
+    }
+
+    private SequentialPlanner CreatePlanner()
+    {
+        SequentialPlannerConfig config = new()
+        {
+            AllowMissingFunctions = false,
+        };
+        config.ExcludedFunctions.Add("Chat");
+        return new SequentialPlanner(Kernel, config);
     }
 
     public BatKernel(BatComputerSettings settings)
@@ -50,6 +61,6 @@ public class BatKernel
         Kernel.ImportFunctions(new Microsoft.SemanticKernel.Plugins.Core.TimePlugin(), "TimePlugin");
         Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
 
-        Planner = new SequentialPlanner(Kernel);
+        Planner = CreatePlanner();
     }
 }

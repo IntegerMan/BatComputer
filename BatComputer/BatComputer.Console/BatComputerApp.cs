@@ -67,14 +67,40 @@ public class BatComputerApp
         DisplayPlanTree(plan);
         //DisplayJson(plan);
 
-        KernelResult result = await ExecutePlanAsync(batKernel, plan, userText);
+        KernelResult result = await ExecutePlanAsync(batKernel, plan);
         //DisplayJson(result);
 
-        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(result.GetValue<string>() ?? "")}[/]");
+        Dictionary<string, object> lastResults = result.FunctionResults.Last().Metadata;
+
+        // Get the coded RESPONSE or go with the first of any metadata values if no response was present
+        bool showResponseTable = lastResults.Count > 1;
+        object? response;
+        if (!lastResults.TryGetValue("RESULT__RESPONSE", out response))
+        {
+            response = lastResults.Values.FirstOrDefault("I'm sorry, but I was not able to generate a response.");
+        }
+
+        if (showResponseTable)
+        {
+            DisplayResponseMetadata(lastResults);
+        }
+
+        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{response}[/]");
         AnsiConsole.WriteLine();
     }
 
-    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan? plan, string input)
+    private static void DisplayResponseMetadata(Dictionary<string, object> lastResults)
+    {
+        var table = new Table();
+        table.AddColumns("Key", "Value");
+        foreach (var kvp in lastResults)
+        {
+            table.AddRow(kvp.Key, kvp.Value.ToString());
+        }
+        AnsiConsole.Write(table);
+    }
+
+    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan plan)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("Executing plan...");
@@ -83,18 +109,14 @@ public class BatComputerApp
         KernelResult? result = null;
         List<KernelResult> results = new();
 
-        ContextVariables variables = new();
-        variables["input"] = input;
-
         await AnsiConsole.Progress()
             .AutoClear(false)
             .HideCompleted(false)
             .StartAsync(async ctx =>
             {
-                foreach (Plan step in plan!.Steps)
+                foreach (Plan step in plan.Steps)
                 {
-                    string taskName = $"{step.Name}: {string.Join(", ", step.Parameters.Select(p => p.Key))}";
-                    ProgressTask task = ctx.AddTask(taskName, new ProgressTaskSettings() { MaxValue = 100, AutoStart = true });
+                    ProgressTask task = ctx.AddTask(step.Name, new ProgressTaskSettings() { MaxValue = 100, AutoStart = true });
                     task.IsIndeterminate(true);
                     tasks.Add(task);
                 }
