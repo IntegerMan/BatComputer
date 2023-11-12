@@ -1,6 +1,7 @@
 using MattEland.BatComputer.Kernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
@@ -14,7 +15,9 @@ namespace MattEland.BatComputer.ConsoleApp;
 public class BatComputerApp
 {
     private const string ChoiceTypeAQuestion = "Type in a question";
+    private const string ChoiceListPlugins = "List plugin functions";
     private const string ChoiceQuit = "Quit";
+
     private readonly BatComputerSettings _settings = new();
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
@@ -31,10 +34,11 @@ public class BatComputerApp
         AnsiConsole.Status().Start("Loading Configuration", LoadSettings);
 
         BatKernel batKernel = new(_settings);
+        DisplayLoadedKernelPlugins(batKernel, showTable: false);
 
         SelectionPrompt<string> choices = new SelectionPrompt<string>()
                                                         .Title("Select an action")
-                                                        .AddChoices([ChoiceTypeAQuestion, ChoiceQuit]);
+                                                        .AddChoices([ChoiceTypeAQuestion, ChoiceListPlugins, ChoiceQuit]);
 
         string choice;
         do
@@ -45,6 +49,10 @@ public class BatComputerApp
             {
                 case ChoiceTypeAQuestion:
                     await MakeChatRequestAsync(batKernel);
+                    break;
+
+                case ChoiceListPlugins:
+                    DisplayLoadedKernelPlugins(batKernel, showTable: true);
                     break;
 
                 case ChoiceQuit:
@@ -59,80 +67,184 @@ public class BatComputerApp
         return 0;
     }
 
-    private async Task MakeChatRequestAsync(BatKernel batKernel)
+    private void DisplayLoadedKernelPlugins(BatKernel batKernel, bool showTable)
     {
-        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question:[/]");
+        List<FunctionView> funcs = batKernel.Kernel.Functions.GetFunctionViews()
+                                                             .Where(f => !batKernel.IsFunctionExcluded(f))
+                                                             .OrderBy(f => f.PluginName)
+                                                             .ThenBy(f => f.Name)
+                                                             .ToList();
 
-        Plan plan = await GeneratePlanAsync(batKernel, userText);
-        DisplayPlanTree(plan);
-        //DisplayJson(plan);
+        string headerMarker = $"[{Skin.SuccessStyle}]{funcs.Count} Plugin Functions Detected[/]";
 
-        KernelResult result = await ExecutePlanAsync(batKernel, plan);
-        //DisplayJson(result);
-
-        Dictionary<string, object> lastResults = result.FunctionResults.Last().Metadata;
-
-        // Get the coded RESPONSE or go with the first of any metadata values if no response was present
-        bool showResponseTable = lastResults.Count > 1;
-        object? response;
-        if (!lastResults.TryGetValue("RESULT__RESPONSE", out response))
+        if (!showTable)
         {
-            response = lastResults.Values.FirstOrDefault("I'm sorry, but I was not able to generate a response.");
+            IOrderedEnumerable<IGrouping<string, FunctionView>> funcsByPlugin =
+                funcs.GroupBy(f => f.PluginName)
+                     .OrderByDescending(g => g.Count())
+                     .ThenBy(g => g.Key);
+
+            AnsiConsole.Write(new BarChart()
+                .Label(headerMarker)
+                .LeftAlignLabel()
+                .AddItems(funcsByPlugin, item => new BarChartItem(item.Key, item.Count()))); // TODO: Colorize by value
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(headerMarker);
+
+            Table funcTable = new();
+            funcTable.AddColumns("Name", "Parameters", "Description");
+            foreach (FunctionView funcView in funcs)
+            {
+                string parameters = string.Join(", ", funcView.Parameters.Select(p =>
+                {
+                    StringBuilder sb = new(p.Name);
+
+                    if (p.IsRequired != true)
+                    {
+                        sb.Append('?');
+                    }
+
+                    if (!string.IsNullOrEmpty(p.DefaultValue))
+                    {
+                        sb.Append(" = " + p.DefaultValue);
+                    }
+
+                    return sb.ToString();
+                }));
+                string qualifiedName = $"[{Skin.NormalStyle}]{funcView.PluginName}[/]:[{Skin.AccentStyle}]{funcView.Name}[/]";
+
+                funcTable.AddRow(qualifiedName, parameters, funcView.Description);
+            }
+            AnsiConsole.Write(funcTable);
         }
 
-        if (showResponseTable)
-        {
-            DisplayResponseMetadata(lastResults);
-        }
-
-        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{response}[/]");
         AnsiConsole.WriteLine();
     }
 
-    private static void DisplayResponseMetadata(Dictionary<string, object> lastResults)
+    private async Task MakeChatRequestAsync(BatKernel batKernel)
     {
-        var table = new Table();
-        table.AddColumns("Key", "Value");
-        foreach (var kvp in lastResults)
+        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question:[/]");
+        Plan plan;
+        try
         {
-            table.AddRow(kvp.Key, kvp.Value.ToString());
+            plan = await GeneratePlanAsync(batKernel, userText);
         }
-        AnsiConsole.Write(table);
+        catch (SKException ex)
+        {
+            AnsiConsole.WriteException(ex);
+
+            AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send the request on for chat response without planning.[/]");
+            // TODO: Actually do this
+
+            return;
+        }
+
+        DisplayPlanDescription(plan);
+
+        await ExecutePlanAsync(batKernel, plan);
+
+        DisplayPlanTree(plan);
+
+        string response = GetResponse(plan);
+
+        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Skin.AgentName}: {response}[/]");
+        AnsiConsole.WriteLine();
     }
 
-    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan plan)
+    private void DisplayPlanDescription(Plan plan, bool displayTargetVariable = false)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Generated plan:[/]");
+        foreach (Plan step in plan.Steps)
+        {
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}] - {step.Name}[/]");
+        }
+
+        if (displayTargetVariable)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Target Variable: [/][{Skin.AccentStyle}]{GetPlanTarget(plan)}[/]");
+        }
+    }
+
+    private static string GetResponse(Plan plan)
+    {
+        string targetKey = GetPlanTarget(plan);
+
+        const string defaultResponse = "I'm sorry, but I was not able to generate a response.";
+
+        if (plan.State.TryGetValue(targetKey, out string? response))
+        {
+            return response ?? defaultResponse;
+        }
+
+        return plan.State.Values.FirstOrDefault(defaultValue: defaultResponse);
+    }
+
+    private static string GetPlanTarget(Plan plan)
+    {
+        string targetKey;
+        if (plan.Outputs.Count == 0)
+        {
+            // We shouldn't have had a plan with no outputs, but this is a good key to use just in case
+            targetKey = "RESULT__RESPONSE";
+        }
+        else
+        {
+            // Either we have 1 or more than 1 output variable. In either case, let's go with the last entry as the most likely usable one
+            targetKey = plan.Outputs.Last();
+        }
+
+        return targetKey;
+    }
+
+
+    private static async Task ExecutePlanAsync(BatKernel batKernel, Plan plan)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("Executing plan...");
 
         List<ProgressTask> tasks = new();
-        KernelResult? result = null;
-        List<KernelResult> results = new();
 
         await AnsiConsole.Progress()
             .AutoClear(false)
             .HideCompleted(false)
             .StartAsync(async ctx =>
             {
+                // Register the tasks we'll be accomplishing so the user can see them in order
                 foreach (Plan step in plan.Steps)
                 {
-                    ProgressTask task = ctx.AddTask(step.Name, new ProgressTaskSettings() { MaxValue = 100, AutoStart = true });
-                    task.IsIndeterminate(true);
+                    ProgressTask task = ctx.AddTask(step.Name, new ProgressTaskSettings() { MaxValue = 100, AutoStart = false });
                     tasks.Add(task);
                 }
 
-                result = await batKernel.Kernel.RunAsync(plan);
-
+                // Sequentially execute each sstep
                 foreach (ProgressTask task in tasks)
                 {
+                    // Have the UI show it as in progress
+                    task.StartTask();
+                    task.IsIndeterminate(true);
+
+                    // Execute the step
+                    await batKernel.Kernel.StepAsync(plan);
+
+                    // Complete it in the UI
                     task.Increment(100);
                     task.StopTask();
                 }
 
             });
-        return result!;
     }
 
+    /// <summary>
+    /// Builds a kernel execution plan from the provided text
+    /// </summary>
+    /// <param name="batKernel">The main kernel wrapper</param>
+    /// <param name="userText">The prompt the user typed in</param>
+    /// <returns>The generated plan</returns>
+    /// <exception cref="SKException">Thrown when a plan could not be generated</exception>
     private async Task<Plan> GeneratePlanAsync(BatKernel batKernel, string userText)
     {
         AnsiConsole.WriteLine("Generating plan...");
@@ -154,40 +266,76 @@ Respond to this statement.
         return plan!;
     }
 
-    private static void DisplayPlanTree(Plan plan)
+    private void DisplayPlanTree(Plan plan)
     {
-        Tree planTree = new("Plan");
+        Tree planTree = new($"[{Skin.NormalStyle}]{plan.PluginName}[/]:[{Skin.AccentStyle}]{plan.Name}[/]");
 
-        TreeNode state = planTree.AddNode("State");
-        foreach (KeyValuePair<string, string> kvp in plan.State)
-        {
-            state.AddNode($"{kvp.Key}: {kvp.Value}");
-        }
+        string target = GetPlanTarget(plan);
 
-        TreeNode steps = planTree.AddNode("Steps");
-        foreach (var step in plan.Steps)
-        {
-            var stepNode = steps.AddNode(step.Name);
+        PopulateTree(plan, planTree, target);
 
-            foreach (KeyValuePair<string, string> param in step.Parameters)
-            {
-                stepNode.AddNode(param.Key + " -->");
-            }
-            foreach (string output in step.Outputs)
-            {
-                stepNode.AddNode("--> " + output);
-            }
-
-        }
-
-        TreeNode outputs = planTree.AddNode("Outputs");
-        foreach (string output in plan.Outputs)
-        {
-            outputs.AddNode(output);
-        }
-
-        AnsiConsole.WriteLine();
         AnsiConsole.Write(planTree);
+        AnsiConsole.WriteLine();
+    }
+
+    private void PopulateTree(Plan plan, IHasTreeNodes tree, string target)
+    {
+        if (plan.Parameters.Any())
+        {
+            TreeNode parameters = tree.AddNode("Parameters");
+            foreach (KeyValuePair<string, string> param in plan.Parameters)
+            {
+                parameters.AddNode($":incoming_envelope: [{Skin.NormalStyle}]{param.Key}[/]");
+            }
+        }
+
+        if (plan.Steps.Any())
+        {
+            TreeNode steps = tree.AddNode("Steps");
+            foreach (Plan step in plan.Steps)
+            {
+                TreeNode stepNode = steps.AddNode($"[{Skin.NormalStyle}]{step.Name}[/]");
+
+                PopulateTree(step, stepNode, target);
+            }
+        }
+
+        if (plan.State.Any())
+        {
+            TreeNode state = tree.AddNode("State");
+
+            foreach (KeyValuePair<string, string> kvp in plan.State)
+            {
+                // Plan.Result tends to be every other answer joined together, so displaying it is usually meaningless / noisy
+                if (kvp.Key == "PLAN.RESULT")
+                    continue;
+
+                if (kvp.Key == target)
+                {
+                    state.AddNode($"[{Skin.AccentStyle}]{kvp.Key}[/]:[{Skin.NormalStyle}]{kvp.Value}[/]");
+                }
+                else
+                {
+                    state.AddNode($"[{Skin.NormalStyle}]{kvp.Key}[/]:[{Skin.DebugStyle}]{kvp.Value}[/]");
+                }
+            }
+        }
+
+        if (plan.Outputs.Any())
+        {
+            TreeNode outputs = tree.AddNode("Outputs");
+            foreach (string output in plan.Outputs)
+            {
+                if (output == target)
+                {
+                    outputs.AddNode($":goal_net: [{Skin.AccentStyle}]{output}[/]");
+                }
+                else
+                {
+                    outputs.AddNode($":outbox_tray: [{Skin.NormalStyle}]{output}[/]");
+                }
+            }
+        }
     }
 
     private static void DisplayJson(object? input)

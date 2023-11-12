@@ -6,8 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>MattEland.BatComputer.ConsoleApp</RootNamespace>
-    <AssemblyVersion>0.0.0.1</AssemblyVersion>
-    <UserSecretsId>b5784d2f-4981-4fa7-8e5a-aff6a0aa7997</UserSecretsId>
+	<AssemblyVersion>0.1.*</AssemblyVersion>
+	<Deterministic>false</Deterministic>
+	<UserSecretsId>b5784d2f-4981-4fa7-8e5a-aff6a0aa7997</UserSecretsId>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 

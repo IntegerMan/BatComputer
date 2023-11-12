@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Plugins.Core;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -26,23 +27,39 @@ public class BatKernel
             */
             .Build();
 
-        Kernel.ImportFunctions(new Microsoft.SemanticKernel.Plugins.Core.TimePlugin(), "TimePlugin");
-        Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
+        ImportFunctions();
+
 
         Planner = CreatePlanner();
 
         Planner.WithInstrumentation(loggerFactory);
     }
 
+    private void ImportFunctions()
+    {
+        Kernel.ImportFunctions(new TimePlugin(), "TimePlugin");
+        Kernel.ImportFunctions(new MathPlugin(), "Math");
+        Kernel.ImportFunctions(new TextPlugin(), "Strings");
+        Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
+        Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summarizer");
+
+        // TODO: Add a memory plugin
+    }
+
+    private readonly SequentialPlannerConfig _plannerConfig = new();
+
     private SequentialPlanner CreatePlanner()
     {
-        SequentialPlannerConfig config = new()
-        {
-            AllowMissingFunctions = false,
-        };
-        config.ExcludedFunctions.Add("Chat");
-        return new SequentialPlanner(Kernel, config);
+        _plannerConfig.AllowMissingFunctions = false;
+        _plannerConfig.ExcludedPlugins.Add("SemanticFunctions");
+
+        return new SequentialPlanner(Kernel, _plannerConfig);
     }
+
+    public bool IsFunctionExcluded(FunctionView f) 
+        => f.PluginName == "SequentialPlanner_Excluded" ||
+            _plannerConfig.ExcludedFunctions.Contains(f.Name) ||
+            _plannerConfig.ExcludedPlugins.Contains(f.PluginName);
 
     public BatKernel(BatComputerSettings settings)
     {
@@ -58,8 +75,7 @@ public class BatKernel
             */
             .Build();
 
-        Kernel.ImportFunctions(new Microsoft.SemanticKernel.Plugins.Core.TimePlugin(), "TimePlugin");
-        Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
+        ImportFunctions();
 
         Planner = CreatePlanner();
     }

@@ -1,8 +1,5 @@
 ﻿using Spectre.Console;
-using System.Reflection;
-using Microsoft.Extensions.Configuration;
 using System.Text;
-using System.ComponentModel.DataAnnotations;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
