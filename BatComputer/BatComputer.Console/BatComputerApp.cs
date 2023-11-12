@@ -1,4 +1,4 @@
-﻿using MattEland.BatComputer.Kernel;
+using MattEland.BatComputer.Kernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
@@ -141,7 +141,17 @@ Respond to this statement.
         TreeNode steps = planTree.AddNode("Steps");
         foreach (var step in plan.Steps)
         {
-            steps.AddNode(step.Name);
+            var stepNode = steps.AddNode(step.Name);
+
+            foreach (KeyValuePair<string, string> param in step.Parameters)
+            {
+                stepNode.AddNode(param.Key + " -->");
+            }
+            foreach (string output in step.Outputs)
+            {
+                stepNode.AddNode("--> " + output);
+            }
+
         }
 
         TreeNode outputs = planTree.AddNode("Outputs");
