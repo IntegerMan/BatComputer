@@ -65,22 +65,26 @@ public class BatComputerApp
 
         Plan plan = await GeneratePlanAsync(batKernel, userText);
         DisplayPlanTree(plan);
-        DisplayJson(plan);
+        //DisplayJson(plan);
 
-        KernelResult result = await ExecutePlanAsync(batKernel, plan);
-        DisplayJson(result);
+        KernelResult result = await ExecutePlanAsync(batKernel, plan, userText);
+        //DisplayJson(result);
 
         AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(result.GetValue<string>() ?? "")}[/]");
         AnsiConsole.WriteLine();
     }
 
-    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan? plan)
+    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan? plan, string input)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("Executing plan...");
 
         List<ProgressTask> tasks = new();
         KernelResult? result = null;
+        List<KernelResult> results = new();
+
+        ContextVariables variables = new();
+        variables["input"] = input;
 
         await AnsiConsole.Progress()
             .AutoClear(false)
