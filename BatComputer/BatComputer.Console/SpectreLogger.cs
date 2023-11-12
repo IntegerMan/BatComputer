@@ -22,11 +22,16 @@ public class SpectreLogger : ILogger
     {
         string text = formatter.Invoke(state, exception);
 
-        if (!text.Contains("Rendering string template") && 
-            !text.Contains("Extracting blocks from template") && 
-            !text.Contains("Rendered prompt"))
+        if (ShouldLogMessage(text))
         {
             AnsiConsole.MarkupLine($"[{Skin.DebugStyle}]{logLevel}: {Markup.Escape(text)}[/]");
         }
+    }
+
+    private static bool ShouldLogMessage(string text)
+    {
+        return !text.Contains("Rendering string template") &&
+                    !text.Contains("Extracting blocks from template") &&
+                    !text.Contains("Rendered prompt");
     }
 }

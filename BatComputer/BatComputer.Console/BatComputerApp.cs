@@ -1,26 +1,18 @@
 ﻿using MattEland.BatComputer.Kernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using Spectre.Console.Json;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
 public class BatComputerApp
 {
-    private const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
     private const string ChoiceTypeAQuestion = "Type in a question";
     private const string ChoiceQuit = "Quit";
     private readonly BatComputerSettings _settings = new();
@@ -38,10 +30,7 @@ public class BatComputerApp
 
         AnsiConsole.Status().Start("Loading Configuration", LoadSettings);
 
-        SpectreLoggerFactory loggerFactory = new(Skin);
-        BatKernel batKernel = new(_settings, loggerFactory);
-
-        AnsiConsole.WriteLine();
+        BatKernel batKernel = new(_settings);
 
         SelectionPrompt<string> choices = new SelectionPrompt<string>()
                                                         .Title("Select an action")
@@ -72,27 +61,104 @@ public class BatComputerApp
 
     private async Task MakeChatRequestAsync(BatKernel batKernel)
     {
-        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question for OpenAI:[/]");
-        AnsiConsole.WriteLine();
+        string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question:[/]");
 
-        await AnsiConsole.Status().StartAsync("Prompting...", async ctx =>
+        Plan plan = await GeneratePlanAsync(batKernel, userText);
+        DisplayPlanTree(plan);
+        DisplayJson(plan);
+
+        KernelResult result = await ExecutePlanAsync(batKernel, plan);
+        DisplayJson(result);
+
+        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(result.GetValue<string>() ?? "")}[/]");
+        AnsiConsole.WriteLine();
+    }
+
+    private static async Task<KernelResult> ExecutePlanAsync(BatKernel batKernel, Plan? plan)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.WriteLine("Executing plan...");
+
+        List<ProgressTask> tasks = new();
+        KernelResult? result = null;
+
+        await AnsiConsole.Progress()
+            .AutoClear(false)
+            .HideCompleted(false)
+            .StartAsync(async ctx =>
+            {
+                foreach (Plan step in plan!.Steps)
+                {
+                    string taskName = $"{step.Name}: {string.Join(", ", step.Parameters.Select(p => p.Key))}";
+                    ProgressTask task = ctx.AddTask(taskName, new ProgressTaskSettings() { MaxValue = 100, AutoStart = true });
+                    task.IsIndeterminate(true);
+                    tasks.Add(task);
+                }
+
+                result = await batKernel.Kernel.RunAsync(plan);
+
+                foreach (ProgressTask task in tasks)
+                {
+                    task.Increment(100);
+                    task.StopTask();
+                }
+
+            });
+        return result!;
+    }
+
+    private async Task<Plan> GeneratePlanAsync(BatKernel batKernel, string userText)
+    {
+        AnsiConsole.WriteLine("Generating plan...");
+
+        Plan? plan = null;
+        await AnsiConsole.Status().StartAsync("Planning...", async ctx =>
         {
             ctx.Spinner(Skin.Spinner);
 
-            ctx.Status("Planning requests...");
-            Plan plan = await batKernel.Planner.CreatePlanAsync(userText);
+            string goal = $"User: {userText}" + """
 
-            AnsiConsole.WriteLine();
+---------------------------------------------
 
-            string json = JsonSerializer.Serialize(plan);
-            AnsiConsole.Write(new JsonText(json));
-            AnsiConsole.WriteLine();
-
-            ctx.Status("Requesting data...");
-
-            KernelResult result = await batKernel.Kernel.RunAsync(plan);
-            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(result.GetValue<string>() ?? "")}[/]");
+Respond to this statement.
+""";
+            plan = await batKernel.Planner.CreatePlanAsync(userText);
         });
+
+        return plan!;
+    }
+
+    private static void DisplayPlanTree(Plan plan)
+    {
+        Tree planTree = new("Plan");
+
+        TreeNode state = planTree.AddNode("State");
+        foreach (KeyValuePair<string, string> kvp in plan.State)
+        {
+            state.AddNode($"{kvp.Key}: {kvp.Value}");
+        }
+
+        TreeNode steps = planTree.AddNode("Steps");
+        foreach (var step in plan.Steps)
+        {
+            steps.AddNode(step.Name);
+        }
+
+        TreeNode outputs = planTree.AddNode("Outputs");
+        foreach (string output in plan.Outputs)
+        {
+            outputs.AddNode(output);
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(planTree);
+    }
+
+    private static void DisplayJson(object? input)
+    {
+        string json = JsonSerializer.Serialize(input);
+        AnsiConsole.Write(new JsonText(json));
+        AnsiConsole.WriteLine();
     }
 
     private void LoadSettings(StatusContext ctx)
@@ -138,7 +204,8 @@ public class BatComputerApp
         if (string.IsNullOrEmpty(value))
         {
             AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not read the config value for {settingName}[/]");
-        } else
+        }
+        else
         {
             applyAction(value);
             AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]{Skin.SuccessEmoji} Read setting {settingName}[/]");
