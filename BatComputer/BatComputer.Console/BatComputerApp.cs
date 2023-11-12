@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Configuration;
+using Microsoft.SemanticKernel;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -12,12 +13,13 @@ using System.Threading.Tasks;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
-public class BatComputerApp 
+public class BatComputerApp
 {
+    private const string SystemText = "You are an AI assistant named Alfred. Respond to the user as if the user was Batman";
     private readonly BatComputerSettings _settings = new();
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
-    public int Run(string[] args) 
+    public int Run(string[] args)
     {
         // Stylize the app
         Color colorPrimary = Skin.NormalColor;
@@ -32,24 +34,34 @@ public class BatComputerApp
         string userText = AnsiConsole.Ask<string>($"[{Skin.NormalStyle}]Enter a question for OpenAI:[/]");
         AnsiConsole.WriteLine();
 
+        KernelBuilder builder = new KernelBuilder();
+        builder.WithAzureOpenAIChatCompletionService("gpt35turbo", _settings.AzureOpenAiEndpoint, _settings.AzureOpenAiKey);
+        IKernel kernel = builder.Build();
+
         OpenAIClient aiClient = new(new Uri(_settings.AzureOpenAiEndpoint), new AzureKeyCredential(_settings.AzureOpenAiKey));
 
         AnsiConsole.Status().Start("Waiting for response", ctx =>
         {
             ctx.Spinner(Skin.Spinner);
 
+            /*
             ChatCompletionsOptions chatOptions = new()
             {
                 ChoiceCount = 1,
                 DeploymentName = "gpt35turbo", // TODO: Take from settings
                 User = Guid.NewGuid().ToString(), // TODO: Machine name
             };
-            chatOptions.Messages.Add(new ChatMessage(ChatRole.System, "You are an AI assistant named Alfred. Respond to the user as if the user was Batman"));
+            chatOptions.Messages.Add(new ChatMessage(ChatRole.System, SystemText));
             chatOptions.Messages.Add(new ChatMessage(ChatRole.User, userText));
+            */
 
-            Response<ChatCompletions> result = aiClient.GetChatCompletions(chatOptions);
+            ISKFunction func = kernel.CreateSemanticFunction(SystemText, new Microsoft.SemanticKernel.Connectors.AI.OpenAI.OpenAIRequestSettings());
+            Microsoft.SemanticKernel.Orchestration.KernelResult result = kernel.RunAsync(userText, func).Result;
 
-            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result.Value.Choices.First().Message.Content}[/]"); // TODO: Escape markup
+            //Response<ChatCompletions> result = aiClient.GetChatCompletions(chatOptions);
+
+            //AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result.Value.Choices.First().Message.Content}[/]"); // TODO: Escape markup
+            AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result}[/]"); // TODO: Escape markup
         });
 
         AnsiConsole.WriteLine();
@@ -60,7 +72,8 @@ public class BatComputerApp
 
     private Action<StatusContext> LoadSettings(string[] args)
     {
-        return ctx => {
+        return ctx =>
+        {
             ctx.Spinner(Skin.Spinner);
 
             // Load settings
