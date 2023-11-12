@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 namespace MattEland.BatComputer.ConsoleApp;
 
 internal class Program {
-    private static int Main(string[] args) {
+    private static async Task<int> Main(string[] args) {
 
         try {
             // Using UTF8 allows more capabilities for Spectre Console.
@@ -15,7 +15,7 @@ internal class Program {
             Console.InputEncoding = Encoding.UTF8;
 
             BatComputerApp app = new();
-            return app.Run(args);
+            return await app.RunAsync(args);
         }
         catch (Exception ex) {
             AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
