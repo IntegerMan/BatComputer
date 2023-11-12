@@ -37,11 +37,11 @@ public class BatKernel
 
     private void ImportFunctions()
     {
-        Kernel.ImportFunctions(new TimePlugin(), "TimePlugin");
+        Kernel.ImportFunctions(new TimePlugin(), "Time");
         Kernel.ImportFunctions(new MathPlugin(), "Math");
         Kernel.ImportFunctions(new TextPlugin(), "Strings");
-        Kernel.ImportFunctions(new ChatPlugin(Kernel), "ChatPlugin");
-        Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summarizer");
+        Kernel.ImportFunctions(new ChatPlugin(Kernel), "Chat");
+        Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
         // TODO: Add a memory plugin
     }
@@ -52,6 +52,7 @@ public class BatKernel
     {
         _plannerConfig.AllowMissingFunctions = false;
         _plannerConfig.ExcludedPlugins.Add("SemanticFunctions");
+        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
 
         return new SequentialPlanner(Kernel, _plannerConfig);
     }
