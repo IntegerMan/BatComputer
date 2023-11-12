@@ -35,6 +35,8 @@ public class BatComputerApp
         AnsiConsole.WriteLine();
 
         KernelBuilder builder = new KernelBuilder();
+
+        /// TODO: Get deployment name from settings
         builder.WithAzureOpenAIChatCompletionService("gpt35turbo", _settings.AzureOpenAiEndpoint, _settings.AzureOpenAiKey);
         IKernel kernel = builder.Build();
 
@@ -43,24 +45,9 @@ public class BatComputerApp
         AnsiConsole.Status().Start("Waiting for response", ctx =>
         {
             ctx.Spinner(Skin.Spinner);
-
-            /*
-            ChatCompletionsOptions chatOptions = new()
-            {
-                ChoiceCount = 1,
-                DeploymentName = "gpt35turbo", // TODO: Take from settings
-                User = Guid.NewGuid().ToString(), // TODO: Machine name
-            };
-            chatOptions.Messages.Add(new ChatMessage(ChatRole.System, SystemText));
-            chatOptions.Messages.Add(new ChatMessage(ChatRole.User, userText));
-            */
-
             ISKFunction func = kernel.CreateSemanticFunction(SystemText, new Microsoft.SemanticKernel.Connectors.AI.OpenAI.OpenAIRequestSettings());
             Microsoft.SemanticKernel.Orchestration.KernelResult result = kernel.RunAsync(userText, func).Result;
 
-            //Response<ChatCompletions> result = aiClient.GetChatCompletions(chatOptions);
-
-            //AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result.Value.Choices.First().Message.Content}[/]"); // TODO: Escape markup
             AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{result}[/]"); // TODO: Escape markup
         });
 
@@ -84,7 +71,7 @@ public class BatComputerApp
                 .AddCommandLine(args)
                 .Build();
 
-            AnsiConsole.MarkupLine("[Yellow]Reading configuration data[/]");
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Reading configuration data[/]");
             ReadRequiredSetting(config, "AzureAIEndpoint", v => _settings.AzureAiServicesEndpoint = v);
             ReadRequiredSetting(config, "AzureAIKey", v => _settings.AzureAiServicesKey = v);
             ReadRequiredSetting(config, "AzureOpenAIEndpoint", v => _settings.AzureOpenAiEndpoint = v);
