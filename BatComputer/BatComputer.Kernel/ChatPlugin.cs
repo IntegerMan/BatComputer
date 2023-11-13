@@ -1,7 +1,14 @@
-﻿using Microsoft.SemanticKernel;
+﻿using LLamaSharp.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
 using System.ComponentModel;
+using System.Security.Cryptography;
+using LLama.Common;
+using LLamaSharp.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.TextCompletion;
+using LLamaSharp.SemanticKernel.TextCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -16,15 +23,21 @@ public class ChatPlugin
     public ChatPlugin(IKernel kernel)
     {
         _kernel = kernel;
-        OpenAIRequestSettings requestSettings = new() { ChatSystemPrompt = SystemText, ResultsPerPrompt = 1 };
 
-        string chatPrompt = @"Bot: How can I help you?
+        //ChatRequestSettings llamaSettings = new(); 
+        //OpenAIRequestSettings requestSettings = new() { ChatSystemPrompt = SystemText, ResultsPerPrompt = 1 };
+
+        string chatPrompt = @$"{SystemText}
+
+Here is a sample chat transcript:
+
+Bot: How can I help you?
 User: {{$input}}
 
 ---------------------------------------------
 
 Bot: ";
-        _chatFunc = kernel.CreateSemanticFunction(chatPrompt, requestSettings, "Chat", "SemanticFunctions");
+        _chatFunc = kernel.CreateSemanticFunction(chatPrompt, "Chat", "SemanticFunctions");
 
         /*
         string webPrompt = "Make a GET request to {{$input}} and describe the text of that site.";

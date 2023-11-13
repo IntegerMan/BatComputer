@@ -37,23 +37,25 @@ public class BatComputerApp
         const string ChoiceListPlugins = "List Plugins";
         const string ChoiceQuit = "Quit";
 
-        List<string> selectionOptions = new()
-        {
-            ChoiceKernel,
-            ChoiceChat,
-            ChoiceListPlugins,
-            ChoiceQuit
-        };
-
-        // TODO: This would allow a switch if we used Enums instead of strings
-        SelectionPrompt<string> choices = new SelectionPrompt<string>()
-                .Title($"[{Skin.NormalStyle}]Select an action[/]")
-                .HighlightStyle(Skin.AccentStyle)
-                .AddChoices(selectionOptions);
-
         string choice;
         do
         {
+            List<string> selectionOptions = new();
+
+            if (batKernel.HasPlanner)
+            {
+                selectionOptions.Add(ChoiceKernel);
+            }
+            selectionOptions.Add(ChoiceChat);
+            selectionOptions.Add(ChoiceListPlugins);
+            selectionOptions.Add(ChoiceQuit);
+
+            // TODO: This would allow a switch if we used Enums instead of strings
+            SelectionPrompt<string> choices = new SelectionPrompt<string>()
+                    .Title($"[{Skin.NormalStyle}]Select an action[/]")
+                    .HighlightStyle(Skin.AccentStyle)
+                    .AddChoices(selectionOptions);
+
             choice = AnsiConsole.Prompt(choices);
 
             if (choice == ChoiceKernel)
@@ -137,6 +139,15 @@ public class BatComputerApp
                 AnsiConsole.WriteException(ex);
                 AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
             }
+
+            // Fallback to handling via chat request
+            return await GetChatPromptResponseAsync(batKernel, prompt);
+        }
+        catch (InvalidCastException ex)
+        {
+            // Invalid Cast can happen with llamaSharp
+            AnsiConsole.WriteException(ex);
+            AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
 
             // Fallback to handling via chat request
             return await GetChatPromptResponseAsync(batKernel, prompt);

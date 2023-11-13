@@ -6,13 +6,20 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
+using LLamaSharp.SemanticKernel;
+using LLamaSharp.SemanticKernel.TextCompletion;
+using Microsoft.SemanticKernel.AI.TextCompletion;
+using LLama.Common;
+using LLama;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using LLamaSharp.SemanticKernel.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
 public class BatKernel
 {
     public IKernel Kernel { get; }
-    public SequentialPlanner Planner { get; }
+    public SequentialPlanner? Planner { get; }
     private readonly ChatPlugin _chat;
 
     public BatKernel(BatComputerSettings settings, ILoggerFactory loggerFactory)
@@ -38,17 +45,32 @@ public class BatKernel
 
         ImportFunctions();
 
-        Planner = CreatePlanner();
+        //Planner = CreatePlanner();
     }
     private static IKernel BuildKernel(BatComputerSettings settings, KernelBuilder builder)
     {
+        var parameters = new ModelParams(@"C:\Models\llama-2-7b-guanaco-qlora.Q2_K.gguf");
+        _model = LLamaWeights.LoadFromFile(parameters);
+        //var ex = new StatelessExecutor(model, parameters);
+
+        _context = _model.CreateContext(parameters);
+        // LLamaSharpChatCompletion requires InteractiveExecutor, as it's the best fit for the given command.
+        InteractiveExecutor chatEx = new(_context);
+        StatelessExecutor stateEx = new(_model, parameters);
+
+        builder.WithAIService<ITextCompletion>("local-llama", new LLamaSharpTextCompletion(stateEx));
+        builder.WithAIService<IChatCompletion>("local-llama-chat", new LLamaSharpChatCompletion(chatEx), setAsDefault: true);
+
         return builder
+            /*
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
                                                   settings.AzureOpenAiEndpoint,
                                                   settings.AzureOpenAiKey,
                                                   setAsDefault: true)
+            */
             // TODO: Add ImageGen Service
             // TODO: Add Embeddings
+            // TODO: Add Retry & Polly
             .Build();
     }
 
@@ -66,6 +88,8 @@ public class BatKernel
     }
 
     private readonly SequentialPlannerConfig _plannerConfig = new();
+    private static LLamaWeights _model;
+    private static LLamaContext _context;
 
     private SequentialPlanner CreatePlanner()
     {
@@ -86,8 +110,15 @@ public class BatKernel
         return await _chat.GetChatResponse(prompt);
     }
 
+    public bool HasPlanner => Planner != null;
+
     public async Task<Plan> PlanAsync(string userText)
     {
+        if (!HasPlanner)
+        {
+            throw new InvalidOperationException("The planner is not enabled");
+        }
+
         string goal = $"User: {userText}" + """
 
                                             ---------------------------------------------
