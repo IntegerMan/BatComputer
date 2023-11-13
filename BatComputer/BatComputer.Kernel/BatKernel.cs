@@ -45,7 +45,7 @@ public class BatKernel
 
         ImportFunctions();
 
-        //Planner = CreatePlanner();
+        Planner = CreatePlanner();
     }
     private static IKernel BuildKernel(BatComputerSettings settings, KernelBuilder builder)
     {
@@ -53,7 +53,7 @@ public class BatKernel
 
         if (useLlama)
         {
-            var parameters = new ModelParams(@"C:\Models\llama-2-7b-guanaco-qlora.Q2_K.gguf");
+            var parameters = new ModelParams(@"C:\Models\thespis-13b-v0.5.Q2_K.gguf");
             _model = LLamaWeights.LoadFromFile(parameters);
             //var ex = new StatelessExecutor(model, parameters);
 

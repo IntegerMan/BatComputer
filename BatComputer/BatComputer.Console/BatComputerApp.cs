@@ -129,7 +129,8 @@ public class BatComputerApp
         catch (SKException ex)
         {
             // It's possible to reach the limits of what's possible with the planner. When that happens, handle it gracefully
-            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase))
+            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase) || 
+                ex.Message.Contains("Unable to create plan for goal with available functions", StringComparison.OrdinalIgnoreCase))
             {
                 AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Not possible to create plan for goal with available functions. Sending as chat request.[/]");
             }
