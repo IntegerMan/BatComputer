@@ -18,12 +18,14 @@ namespace MattEland.BatComputer.Kernel;
 
 public class BatKernel
 {
+    private readonly BatComputerSettings _settings;
     public IKernel Kernel { get; }
     public SequentialPlanner? Planner { get; }
     private readonly ChatPlugin _chat;
 
     public BatKernel(BatComputerSettings settings, ILoggerFactory loggerFactory)
     {
+        _settings = settings;
         KernelBuilder builder = new();
         builder.WithLoggerFactory(loggerFactory);
         Kernel = BuildKernel(settings, builder);
@@ -38,6 +40,7 @@ public class BatKernel
 
     public BatKernel(BatComputerSettings settings)
     {
+        _settings = settings;
         KernelBuilder builder = new();
         Kernel = BuildKernel(settings, builder);
 
@@ -89,10 +92,11 @@ public class BatKernel
     {
         Kernel.ImportFunctions(_chat, "Chat");
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
-        Kernel.ImportFunctions(new MathPlugin(), "Math");
-        Kernel.ImportFunctions(new TextPlugin(), "Strings");
-        Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
-        Kernel.ImportFunctions(new OpenMeteoPlugin(), "OpenMeteo");
+        //Kernel.ImportFunctions(new MathPlugin(), "Math");
+        //Kernel.ImportFunctions(new TextPlugin(), "Strings");
+        //Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
+        Kernel.ImportFunctions(new OpenMeteoPlugin(), "Weather");
+        Kernel.ImportFunctions(new MePlugin(_settings, Kernel), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
         // TODO: Add a memory plugin
@@ -107,6 +111,8 @@ public class BatKernel
         _plannerConfig.AllowMissingFunctions = false;
         _plannerConfig.ExcludedPlugins.Add("SemanticFunctions");
         _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
 
         return new SequentialPlanner(Kernel, _plannerConfig);
     }
@@ -134,7 +140,7 @@ public class BatKernel
 
                                             ---------------------------------------------
 
-                                            Respond to this statement. If the user is requesting information about a web page by URL, make a GET request for that data and summarize the contents.
+                                            Respond to this statement as if you are Alfred and the user is Batman.
                                             """;
         return await Planner.CreatePlanAsync(goal);
     }

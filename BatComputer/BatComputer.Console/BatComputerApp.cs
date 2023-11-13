@@ -100,7 +100,7 @@ public class BatComputerApp
 
     private void DisplayChatResponse(string chatResponse)
     {
-        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Skin.AgentName}: {chatResponse}[/]");
+        AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
         AnsiConsole.WriteLine();
     }
 

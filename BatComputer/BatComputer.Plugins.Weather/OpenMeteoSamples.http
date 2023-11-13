@@ -1,0 +1,7 @@
+﻿### Geocoding
+
+GET https://geocoding-api.open-meteo.com/v1/search?name=Columbus&count=5
+
+### Current Weather
+
+GET https://api.open-meteo.com/v1/forecast?latitude=39.96118&longitude=-82.99879&current=temperature_2m,apparent_temperature,precipitation,rain,showers,snowfall,weather_code,cloud_cover&daily=weather_code,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York

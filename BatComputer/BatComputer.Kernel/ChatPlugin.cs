@@ -9,15 +9,19 @@ using LLamaSharp.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using LLamaSharp.SemanticKernel.TextCompletion;
+using Microsoft.SemanticKernel.AI;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
 public class ChatPlugin
 {
-    private const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
+    public const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
 
     private readonly IKernel _kernel;
     private readonly ISKFunction _chatFunc;
+
+    private readonly ISKFunction _recFunc;
     //private readonly ISKFunction _webFunc;
 
     public ChatPlugin(IKernel kernel)
@@ -39,6 +43,8 @@ User: {{$input}}
 Bot: ";
         _chatFunc = kernel.CreateSemanticFunction(chatPrompt, "Chat", "SemanticFunctions");
 
+        _recFunc = kernel.CreateSemanticFunction("Given the following user preferences: {{$summary}} and weather summary {{$weather}}, provide a recommendation based on the user's message: {{$originalMessage}}", "Recommend", "SemanticFunctions");
+
         /*
         string webPrompt = "Make a GET request to {{$input}} and describe the text of that site.";
         _webFunc = kernel.CreateSemanticFunction(webPrompt, requestSettings, "WebSummarize", "SemanticFunctions");
@@ -50,8 +56,8 @@ Bot: ";
     {
         KernelResult result = await _kernel.RunAsync(input, _chatFunc);
         return result.GetValue<string>() ?? "";
-    }
-
+    }    
+    
     /*
     [SKFunction, Description("Summarizes the contents of a web page"), UsedImplicitly]
     public async Task<string> InterpretWebPage([Description("A web page URL the user is interested in")] string url)
