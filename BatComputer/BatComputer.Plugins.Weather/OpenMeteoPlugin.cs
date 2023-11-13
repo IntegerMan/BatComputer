@@ -83,7 +83,7 @@ public class OpenMeteoPlugin
             sb.Append("It is dark outside. ");
         }
 
-        sb.Append($"The current temperature feels like {current.ApparentTemperature} \u00b0F. Cloud cover is currently {current.CloudCoverPercent:P}");
+        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. Cloud cover is currently {current.CloudCoverPercent:P}");
 
         if (current.Snowfall > 0)
         {
