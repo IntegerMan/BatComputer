@@ -166,8 +166,21 @@ public class BatComputerApp
         return GetResponse(plan);
     }
 
-    private static async Task<string> GetChatPromptResponseAsync(BatKernel batKernel, string prompt) 
-        => await batKernel.GetChatResponseAsync(prompt);
+    private async Task<string> GetChatPromptResponseAsync(BatKernel batKernel, string prompt)
+    {
+        try
+        {
+            return await batKernel.GetChatResponseAsync(prompt);
+        }
+        catch (HttpOperationException ex)
+        {
+            if (ex.Message.Contains("does not work with the specified model"))
+            {
+                return $"[{Skin.ErrorStyle}]Your model does not support the current option. You may be trying to use a completion model with a chat feature or vice versa. Try using a different deployment model.[/]";
+            }
+            throw;
+        }
+    }
 
     private void DisplayPlanDescription(Plan plan, bool displayTargetVariable = false)
     {

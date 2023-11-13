@@ -49,25 +49,36 @@ public class BatKernel
     }
     private static IKernel BuildKernel(BatComputerSettings settings, KernelBuilder builder)
     {
-        var parameters = new ModelParams(@"C:\Models\llama-2-7b-guanaco-qlora.Q2_K.gguf");
-        _model = LLamaWeights.LoadFromFile(parameters);
-        //var ex = new StatelessExecutor(model, parameters);
+        bool useLlama = false;
 
-        _context = _model.CreateContext(parameters);
-        // LLamaSharpChatCompletion requires InteractiveExecutor, as it's the best fit for the given command.
-        InteractiveExecutor chatEx = new(_context);
-        StatelessExecutor stateEx = new(_model, parameters);
+        if (useLlama)
+        {
+            var parameters = new ModelParams(@"C:\Models\llama-2-7b-guanaco-qlora.Q2_K.gguf");
+            _model = LLamaWeights.LoadFromFile(parameters);
+            //var ex = new StatelessExecutor(model, parameters);
 
-        builder.WithAIService<ITextCompletion>("local-llama", new LLamaSharpTextCompletion(stateEx));
-        builder.WithAIService<IChatCompletion>("local-llama-chat", new LLamaSharpChatCompletion(chatEx), setAsDefault: true);
+            _context = _model.CreateContext(parameters);
+            // LLamaSharpChatCompletion requires InteractiveExecutor, as it's the best fit for the given command.
+            //InteractiveExecutor chatEx = new(_context);
+            StatelessExecutor stateEx = new(_model, parameters);
+
+            builder.WithAIService<ITextCompletion>("local-llama", new LLamaSharpTextCompletion(stateEx), true);
+            //builder.WithAIService<IChatCompletion>("local-llama-chat", new LLamaSharpChatCompletion(chatEx), setAsDefault: true);
+        }
+        else
+        {
+            /*
+.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
+                                      settings.AzureOpenAiEndpoint,
+                                      settings.AzureOpenAiKey,
+                                      setAsDefault: true)
+*/
+            // TODO: Allow specifying text vs chat models
+            builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
+        }
 
         return builder
-            /*
-            .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
-                                                  settings.AzureOpenAiEndpoint,
-                                                  settings.AzureOpenAiKey,
-                                                  setAsDefault: true)
-            */
+
             // TODO: Add ImageGen Service
             // TODO: Add Embeddings
             // TODO: Add Retry & Polly
