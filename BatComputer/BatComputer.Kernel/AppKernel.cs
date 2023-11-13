@@ -1,29 +1,26 @@
 ﻿using BatComputer.Plugins.Weather;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
-using LLamaSharp.SemanticKernel;
 using LLamaSharp.SemanticKernel.TextCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using LLama.Common;
 using LLama;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using LLamaSharp.SemanticKernel.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class BatKernel
+public class AppKernel
 {
-    private readonly BatComputerSettings _settings;
+    private readonly KernelSettings _settings;
     public IKernel Kernel { get; }
     public SequentialPlanner? Planner { get; }
     private readonly ChatPlugin _chat;
 
-    public BatKernel(BatComputerSettings settings, ILoggerFactory loggerFactory)
+    public Plan? LastPlan { get; private set; }
+
+    public AppKernel(KernelSettings settings, ILoggerFactory loggerFactory)
     {
         _settings = settings;
         KernelBuilder builder = new();
@@ -38,7 +35,7 @@ public class BatKernel
         Planner.WithInstrumentation(loggerFactory);
     }
 
-    public BatKernel(BatComputerSettings settings)
+    public AppKernel(KernelSettings settings)
     {
         _settings = settings;
         KernelBuilder builder = new();
@@ -50,7 +47,8 @@ public class BatKernel
 
         Planner = CreatePlanner();
     }
-    private static IKernel BuildKernel(BatComputerSettings settings, KernelBuilder builder)
+
+    private static IKernel BuildKernel(KernelSettings settings, KernelBuilder builder)
     {
         bool useLlama = false;
 
@@ -124,6 +122,8 @@ public class BatKernel
 
     public async Task<string> GetChatResponseAsync(string prompt)
     {
+        LastPlan = null;
+
         return await _chat.GetChatResponse(prompt);
     }
 
@@ -136,12 +136,18 @@ public class BatKernel
             throw new InvalidOperationException("The planner is not enabled");
         }
 
+        LastPlan = null;
+
         string goal = $"User: {userText}" + """
 
                                             ---------------------------------------------
 
                                             Respond to this statement as if you are Alfred and the user is Batman.
                                             """;
-        return await Planner.CreatePlanAsync(goal);
+        Plan plan = await Planner!.CreatePlanAsync(goal);
+
+        LastPlan = plan;
+
+        return plan;
     }
 }

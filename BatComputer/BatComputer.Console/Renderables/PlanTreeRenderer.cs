@@ -33,7 +33,7 @@ public static class PlanTreeRenderer
             TreeNode parameters = tree.AddNode("Parameters");
             foreach (KeyValuePair<string, string> param in plan.Parameters)
             {
-                parameters.AddNode($":incoming_envelope: [{skin.NormalStyle}]{param.Key}[/]");
+                parameters.AddNode($":incoming_envelope: [{skin.NormalStyle}]{Markup.Escape(param.Key)}[/] = [{skin.AccentStyle}]{param.Value.GetValueText()}[/]");
             }
         }
 
@@ -42,7 +42,7 @@ public static class PlanTreeRenderer
             TreeNode steps = tree.AddNode("Steps");
             foreach (Plan step in plan.Steps)
             {
-                TreeNode stepNode = steps.AddNode($"[{skin.NormalStyle}]{step.Name}[/]");
+                TreeNode stepNode = steps.AddNode($"[{skin.NormalStyle}]{Markup.Escape(step.Name)}[/]");
 
                 PopulateTree(step, skin, stepNode, target);
             }
@@ -58,13 +58,9 @@ public static class PlanTreeRenderer
                 if (kvp.Key == "PLAN.RESULT")
                     continue;
 
-                string valueText = kvp.Value.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase) 
-                    ? "<A HTML Document>" 
-                    : Markup.Escape(kvp.Value);
-
                 state.AddNode(kvp.Key == target
-                    ? $"[{skin.AccentStyle}]{Markup.Escape(kvp.Key)}[/]:[{skin.NormalStyle}]{valueText}[/]"
-                    : $"[{skin.NormalStyle}]{Markup.Escape(kvp.Key)}[/]:[{skin.DebugStyle}]{valueText}[/]");
+                    ? $"[{skin.AccentStyle}]{Markup.Escape(kvp.Key)}[/]: [{skin.NormalStyle}]{kvp.Value.GetValueText()}[/]"
+                    : $"[{skin.NormalStyle}]{Markup.Escape(kvp.Key)}[/]: [{skin.DebugStyle}]{kvp.Value.GetValueText()}[/]");
             }
         }
 
@@ -74,10 +70,16 @@ public static class PlanTreeRenderer
             foreach (string output in plan.Outputs)
             {
                 outputs.AddNode(output == target
-                    ? $":goal_net: [{skin.AccentStyle}]{output}[/]"
-                    : $":outbox_tray: [{skin.NormalStyle}]{output}[/]");
+                    ? $":goal_net: [{skin.SuccessStyle}]${Markup.Escape(output)}[/]"
+                    : $":outbox_tray: [{skin.AccentStyle}]${Markup.Escape(output)}[/]");
             }
         }
     }
 
+    private static string GetValueText(this string value)
+    {
+        return value.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase) 
+            ? "<A HTML Document>" 
+            : Markup.Escape(value);
+    }
 }

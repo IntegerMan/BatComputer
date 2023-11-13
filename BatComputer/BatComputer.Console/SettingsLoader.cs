@@ -8,7 +8,7 @@ namespace MattEland.BatComputer.ConsoleApp;
 
 public static class SettingsLoader
 {
-    public static BatComputerSettings Load(this BatComputerSettings _settings, ConsoleSkin skin)
+    public static KernelSettings Load(this KernelSettings _settings, ConsoleSkin skin)
     {
         // Load settings
         IConfigurationRoot config = new ConfigurationBuilder()

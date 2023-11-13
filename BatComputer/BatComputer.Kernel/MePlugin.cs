@@ -15,10 +15,10 @@ namespace MattEland.BatComputer.Kernel;
 
 public class MePlugin
 {
-    private readonly BatComputerSettings _settings;
+    private readonly KernelSettings _settings;
     private readonly IKernel _kernel;
 
-    public MePlugin(BatComputerSettings settings, IKernel kernel)
+    public MePlugin(KernelSettings settings, IKernel kernel)
     {
         _settings = settings;
         _kernel = kernel;

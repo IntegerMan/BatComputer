@@ -5,12 +5,13 @@ using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using MattEland.BatComputer.ConsoleApp.Skins;
+using MattEland.BatComputer.ConsoleApp.Helpers;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
 public class BatComputerApp
 {
-    private readonly BatComputerSettings _settings = new();
+    private readonly KernelSettings _settings = new();
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
     public async Task<int> RunAsync()
@@ -19,10 +20,10 @@ public class BatComputerApp
 
         LoadSettings();
 
-        BatKernel batKernel = new(_settings);
-        batKernel.RenderKernelPluginsChart(Skin);
+        AppKernel appKernel = new(_settings);
+        appKernel.RenderKernelPluginsChart(Skin);
 
-        await RunMainLoopAsync(batKernel);
+        await RunMainLoopAsync(appKernel);
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
@@ -30,72 +31,84 @@ public class BatComputerApp
         return 0;
     }
 
-    private async Task RunMainLoopAsync(BatKernel batKernel)
+    private async Task RunMainLoopAsync(AppKernel appKernel)
     {
-        string ChoiceKernel = $"Query {Skin.AppNamePrefix} {Skin.AppName}";
-        string ChoiceChat = $"Chat with {Skin.AgentName}";
-        const string ChoiceListPlugins = "List Plugins";
-        const string ChoiceQuit = "Quit";
-
-        string choice;
+        MainMenuOption choice;
         do
         {
-            List<string> selectionOptions = new();
-
-            if (batKernel.HasPlanner)
-            {
-                selectionOptions.Add(ChoiceKernel);
-            }
-            selectionOptions.Add(ChoiceChat);
-            selectionOptions.Add(ChoiceListPlugins);
-            selectionOptions.Add(ChoiceQuit);
-
-            // TODO: This would allow a switch if we used Enums instead of strings
-            SelectionPrompt<string> choices = new SelectionPrompt<string>()
+            // TODO: This probably will need hierarchical sub-menus as options grow
+            SelectionPrompt<MainMenuOption> choices = new SelectionPrompt<MainMenuOption>()
                     .Title($"[{Skin.NormalStyle}]Select an action[/]")
                     .HighlightStyle(Skin.AccentStyle)
-                    .AddChoices(selectionOptions);
+                    .AddChoices(GetMainMenuOptions(appKernel))
+                    .UseConverter(c => c switch
+                    {
+                        MainMenuOption.Query => $"Query {Skin.AppNamePrefix} {Skin.AppName}",
+                        MainMenuOption.Chat => $"Chat with {Skin.AgentName}",
+                        _ => c.ToFriendlyString()
+                    });
 
+            // TODO: This probably will need the command pattern
             choice = AnsiConsole.Prompt(choices);
-
-            if (choice == ChoiceKernel)
+            switch (choice)
             {
-                string prompt = GetUserText($"[{Skin.NormalStyle}]Type your request:[/]");
+                case MainMenuOption.Query:
+                    {
+                        string prompt = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Type your request:[/]");
+                        if (!string.IsNullOrWhiteSpace(prompt))
+                        {
+                            string response = await GetKernelPromptResponseAsync(appKernel, prompt);
 
-                string response = await GetKernelPromptResponseAsync(batKernel, prompt);
+                            DisplayChatResponse(response);
+                        }
+                    }
+                    break;
+                case MainMenuOption.Chat:
+                    {
+                        string prompt = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Type your message:[/]");
+                        if (!string.IsNullOrWhiteSpace(prompt))
+                        {
+                            string chatResponse = await GetChatPromptResponseAsync(appKernel, prompt);
 
-                DisplayChatResponse(response);
+                            DisplayChatResponse(chatResponse);
+                        }
+                    }
+                    break;
+                case MainMenuOption.ShowPlanTree:
+                    appKernel.LastPlan!.RenderTree(Skin);
+                    break;
+                case MainMenuOption.ShowPlanJson:
+                    appKernel.LastPlan!.RenderJson();
+                    break;
+                case MainMenuOption.ListPlugins:
+                    appKernel.RenderKernelPluginsTable(Skin);
+                    break;
+                case MainMenuOption.Quit:
+                    AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Shutting down[/]");
+                    break;
+                default:
+                    throw new NotSupportedException($"Choice {choice} was not implemented in {nameof(RunMainLoopAsync)}");
             }
-            else if (choice == ChoiceChat)
-            {
-                string chatPrompt = GetUserText($"[{Skin.NormalStyle}]Type your message:[/]");
-
-                string chatResponse = await GetChatPromptResponseAsync(batKernel, chatPrompt);
-
-                DisplayChatResponse(chatResponse);
-            }
-            else if (choice == ChoiceListPlugins)
-            {
-                batKernel.RenderKernelPluginsTable(Skin);
-            }
-            else if (choice == ChoiceQuit)
-            {
-                AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Shutting down[/]");
-            }
-            else
-            {
-                throw new NotSupportedException($"Choice {choice} was not implemented in {nameof(RunMainLoopAsync)}");
-            }
-        } while (choice != ChoiceQuit);
+        } while (choice != MainMenuOption.Quit);
     }
 
-    private static string GetUserText(string message)
+    private static IEnumerable<MainMenuOption> GetMainMenuOptions(AppKernel appKernel)
     {
-        string prompt = AnsiConsole.Ask<string>(message);
+        if (appKernel.HasPlanner)
+        {
+            yield return MainMenuOption.Query;
+        }
 
-        AnsiConsole.WriteLine();
+        yield return MainMenuOption.Chat;
+        yield return MainMenuOption.ListPlugins;
 
-        return prompt;
+        if (appKernel.LastPlan != null)
+        {
+            yield return MainMenuOption.ShowPlanTree;
+            yield return MainMenuOption.ShowPlanJson;
+        }
+
+        yield return MainMenuOption.Quit;
     }
 
     private void DisplayChatResponse(string chatResponse)
@@ -119,17 +132,17 @@ public class BatComputerApp
         });
     }
 
-    private async Task<string> GetKernelPromptResponseAsync(BatKernel batKernel, string prompt)
+    private async Task<string> GetKernelPromptResponseAsync(AppKernel appKernel, string prompt)
     {
         Plan plan;
         try
         {
-            plan = await GeneratePlanAsync(batKernel, prompt);
+            plan = await GeneratePlanAsync(appKernel, prompt);
         }
         catch (SKException ex)
         {
             // It's possible to reach the limits of what's possible with the planner. When that happens, handle it gracefully
-            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase) || 
+            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase) ||
                 ex.Message.Contains("Unable to create plan for goal with available functions", StringComparison.OrdinalIgnoreCase))
             {
                 AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Not possible to create plan for goal with available functions. Sending as chat request.[/]");
@@ -142,7 +155,7 @@ public class BatComputerApp
             }
 
             // Fallback to handling via chat request
-            return await GetChatPromptResponseAsync(batKernel, prompt);
+            return await GetChatPromptResponseAsync(appKernel, prompt);
         }
         catch (InvalidCastException ex)
         {
@@ -151,27 +164,24 @@ public class BatComputerApp
             AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
 
             // Fallback to handling via chat request
-            return await GetChatPromptResponseAsync(batKernel, prompt);
+            return await GetChatPromptResponseAsync(appKernel, prompt);
         }
 
         // Show the user a plan before we execute it
         DisplayPlanDescription(plan);
 
         // Execute the plan step by step and show progress
-        await ExecutePlanAsync(batKernel, plan);
-
-        // Display the final state of the plan
-        plan.RenderTree(Skin);
+        await ExecutePlanAsync(appKernel, plan);
 
         // Get the response from the plan
         return GetResponse(plan);
     }
 
-    private async Task<string> GetChatPromptResponseAsync(BatKernel batKernel, string prompt)
+    private async Task<string> GetChatPromptResponseAsync(AppKernel appKernel, string prompt)
     {
         try
         {
-            return await batKernel.GetChatResponseAsync(prompt);
+            return await appKernel.GetChatResponseAsync(prompt);
         }
         catch (HttpOperationException ex)
         {
@@ -201,17 +211,15 @@ public class BatComputerApp
 
     private static string GetResponse(Plan plan)
     {
-        const string defaultResponse = "I'm sorry, but I was not able to generate a response.";
-
         if (plan.State.TryGetValue(plan.GetTarget(), out string? response))
         {
-            return response ?? defaultResponse;
+            return response;
         }
 
-        return plan.State.Values.FirstOrDefault(defaultValue: defaultResponse);
+        return plan.State.Values.FirstOrDefault(defaultValue: "I'm sorry, but I was not able to generate a response.");
     }
 
-    private static async Task ExecutePlanAsync(BatKernel batKernel, Plan plan)
+    private static async Task ExecutePlanAsync(AppKernel appKernel, Plan plan)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("Executing plan...");
@@ -238,24 +246,23 @@ public class BatComputerApp
                     task.IsIndeterminate(true);
 
                     // Execute the step
-                    await batKernel.Kernel.StepAsync(plan);
+                    await appKernel.Kernel.StepAsync(plan);
 
                     // Complete it in the UI
                     task.Increment(100);
                     task.StopTask();
                 }
-
             });
     }
 
     /// <summary>
     /// Builds a kernel execution plan from the provided text
     /// </summary>
-    /// <param name="batKernel">The main kernel wrapper</param>
+    /// <param name="appKernel">The main kernel wrapper</param>
     /// <param name="userText">The prompt the user typed in</param>
     /// <returns>The generated plan</returns>
     /// <exception cref="SKException">Thrown when a plan could not be generated</exception>
-    private async Task<Plan> GeneratePlanAsync(BatKernel batKernel, string userText)
+    private async Task<Plan> GeneratePlanAsync(AppKernel appKernel, string userText)
     {
         AnsiConsole.WriteLine("Generating plan...");
 
@@ -264,7 +271,7 @@ public class BatComputerApp
         {
             ctx.Spinner(Skin.Spinner);
 
-            plan = await batKernel.PlanAsync(userText);
+            plan = await appKernel.PlanAsync(userText);
         });
 
         return plan!;

@@ -56,8 +56,8 @@ Bot: ";
     {
         KernelResult result = await _kernel.RunAsync(input, _chatFunc);
         return result.GetValue<string>() ?? "";
-    }    
-    
+    }
+
     /*
     [SKFunction, Description("Summarizes the contents of a web page"), UsedImplicitly]
     public async Task<string> InterpretWebPage([Description("A web page URL the user is interested in")] string url)
@@ -66,4 +66,7 @@ Bot: ";
         return result.GetValue<string>() ?? "";
     }
     */
+
+    [SKFunction, Description("Displays a response to the user")]
+    public string DisplayResponse([Description("The response to show to the user")] string response) => response;
 }

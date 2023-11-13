@@ -8,7 +8,7 @@ namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
 public static class KernelPluginsRenderer
 {
-    public static void RenderKernelPluginsChart(this BatKernel kernel, ConsoleSkin skin)
+    public static void RenderKernelPluginsChart(this AppKernel kernel, ConsoleSkin skin)
     {
         List<FunctionView> funcs = GetActiveFunctions(kernel);
 
@@ -27,7 +27,7 @@ public static class KernelPluginsRenderer
         AnsiConsole.WriteLine();
     }
 
-    public static void RenderKernelPluginsTable(this BatKernel kernel, ConsoleSkin skin)
+    public static void RenderKernelPluginsTable(this AppKernel kernel, ConsoleSkin skin)
     {
         List<FunctionView> funcs = GetActiveFunctions(kernel);
 
@@ -64,7 +64,7 @@ public static class KernelPluginsRenderer
         AnsiConsole.WriteLine();
     }
 
-    private static List<FunctionView> GetActiveFunctions(BatKernel kernel)
+    private static List<FunctionView> GetActiveFunctions(AppKernel kernel)
     {
         IReadOnlyList<FunctionView> functions = kernel.Kernel.Functions.GetFunctionViews();
 
