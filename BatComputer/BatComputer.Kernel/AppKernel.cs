@@ -1,4 +1,5 @@
 ﻿using BatComputer.Plugins.Weather;
+using BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -7,18 +8,18 @@ using LLamaSharp.SemanticKernel.TextCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using LLama.Common;
 using LLama;
+using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class AppKernel
+public class AppKernel : IAppKernel
 {
     private readonly KernelSettings _settings;
     public IKernel Kernel { get; }
     public SequentialPlanner? Planner { get; }
     private readonly SequentialPlannerConfig _plannerConfig;
-
     private readonly ChatPlugin _chat;
 
     public Plan? LastPlan { get; private set; }
@@ -87,7 +88,8 @@ public class AppKernel
         //Kernel.ImportFunctions(new MathPlugin(), "Math");
         //Kernel.ImportFunctions(new TextPlugin(), "Strings");
         //Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
-        Kernel.ImportFunctions(new OpenMeteoPlugin(), "Weather");
+        Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
+        Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
@@ -107,6 +109,7 @@ public class AppKernel
         LastPlan = null;
         LastMessage = prompt;
         LastGoal = null;
+        Widgets.Clear();
 
         return await _chat.GetChatResponse(prompt);
     }
@@ -114,6 +117,11 @@ public class AppKernel
     public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }
     public string? LastGoal { get; private set; }
+    public Queue<IWidget> Widgets { get; } = new();
+    public void AddWidget(IWidget widget)
+    {
+        Widgets.Enqueue(widget);
+    }
 
     public async Task<Plan> PlanAsync(string userText)
     {
@@ -124,13 +132,9 @@ public class AppKernel
 
         LastPlan = null;
         LastMessage = null;
+        Widgets.Clear();
 
-        LastGoal = """
-                      The following is a chat transcript between the user and you. Respond in the best way that you can, retrieving the most relevant information possible.
-                      ---------------------------------------------
-                      """ +
-                      $"User: {userText}\r\n" + 
-                      "Bot: ";
+        LastGoal = $"The goal of the plan is to answer the prompt: {userText} in the voice of Alfred addressing the user, Batman. Do not use .output in your plans and do not include any step that has no output.";
         Plan plan = await Planner!.CreatePlanAsync(LastGoal);
 
         LastPlan = plan;

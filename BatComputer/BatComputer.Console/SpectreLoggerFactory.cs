@@ -1,5 +1,4 @@
 ﻿using BatComputer.Abstractions;
-using MattEland.BatComputer.ConsoleApp.Skins;
 using Microsoft.Extensions.Logging;
 
 namespace MattEland.BatComputer.ConsoleApp;

@@ -1,5 +1,4 @@
 ﻿using BatComputer.Abstractions;
-using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;

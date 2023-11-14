@@ -17,6 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
 	  <ProjectReference Include="..\BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj" />
 	</ItemGroup>
 

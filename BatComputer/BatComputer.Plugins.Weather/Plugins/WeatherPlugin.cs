@@ -1,55 +1,22 @@
 ﻿using System.ComponentModel;
 using System.Text;
-using System.Text.Encodings.Web;
+using BatComputer.Plugins.Weather.Models;
+using BatComputer.Plugins.Weather.Widgets;
+using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 
-namespace BatComputer.Plugins.Weather;
+namespace BatComputer.Plugins.Weather.Plugins;
 
-
-public class OpenMeteoPlugin
+public class WeatherPlugin : OpenMeteoPlugin
 {
-
-    [SKFunction, Description("Gets a latitude and longitude string from a city, zip code, or location. Result is formatted like: lat,long")]
-    public async Task<string> GetLatLong([Description("The city or location such as Columbus, Ohio or a Zip code like 43081")] string location)
+    public WeatherPlugin(IAppKernel kernel) : base(kernel)
     {
-
-        if (location.Contains('$') || location.Contains('.'))
-        {
-            return $"{location} doesn't seem like a valid location. I can't find its latitude and longitude.";
-        }
-
-        // If we include a comma, ignore the comma and content to the right of it
-        if (location.Contains(','))
-        {
-            location = location[..location.IndexOf(',', StringComparison.Ordinal)];
-        }
-
-        string url = $"https://geocoding-api.open-meteo.com/v1/search?name={UrlEncoder.Default.Encode(location)}&count=1";
-
-        string json = await GetJsonFromRestRequestAsync(url);
-        GeoCodingResponse? geoCodingResponse = JsonConvert.DeserializeObject<GeoCodingResponse>(json);
-
-        if (geoCodingResponse?.Results == null || geoCodingResponse.Results.Count == 0)
-        {
-            return $"Could not interpret lat / long for {location} based on the OpenMeteo response: {json}";
-        }
-
-        GeoCodingLocation geo = geoCodingResponse.Results.First();
-
-        return geo.Latitude + "," + geo.Longitude;
-    }
-
-    private static async Task<string> GetJsonFromRestRequestAsync(string url)
-    {
-        using HttpClient client = new();
-        HttpResponseMessage response = await client.GetAsync(url);
-        string json = await response.Content.ReadAsStringAsync();
-        return json;
     }
 
     [SKFunction, Description("Gets current weather information from a latitude and longitude")]
-    public async Task<string> GetCurrentWeatherFromLatLong([Description("The latitude and longitude. Formatted like: lat,long")] string latLong)
+    public async Task<string> GetCurrentWeatherFromLatLong([Description("The latitude and longitude. Formatted like: lat,long")] string latLong, 
+        [Description("An optional meaningful description of the lat/long such as a city name or a zip code")] string? locationDescription = null)
     {
         if (!latLong.Contains(','))
         {
@@ -59,15 +26,24 @@ public class OpenMeteoPlugin
         (string lat, string lon) = GetLatLongFromString(latLong);
 
         WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
-
         CurrentWeather current = response.Current!;
 
         StringBuilder sb = new();
+
+        CurrentWeatherWidget widget = new(string.IsNullOrWhiteSpace(locationDescription) ? $"Weather for {locationDescription}" : "Current Weather")
+        {
+            Temperature = $"{current.Temperature}\u00b0F",
+            CloudCover = $"{current.CloudCoverPercent:P0}",
+            IsDay = current.IsDay,
+            Rainfall = $"{current.Rain} inches",
+            Snowfall = $"{current.Snowfall} inches"
+        };
 
         string? weatherName = CurrentWeatherCode(current.WeatherCode);
         if (!string.IsNullOrEmpty(weatherName))
         {
             sb.Append($"Current weather: {weatherName}. ");
+            widget.Conditions = weatherName;
         }
 
         if (!current.IsDay)
@@ -89,6 +65,8 @@ public class OpenMeteoPlugin
         {
             sb.Append(" It is currently raining");
         }
+
+        Kernel.AddWidget(widget);
 
         return sb.ToString();
     }
@@ -219,4 +197,6 @@ public class OpenMeteoPlugin
             99 => "Thunderstorm with heavy hail",
             _ => null
         };
+
+
 }

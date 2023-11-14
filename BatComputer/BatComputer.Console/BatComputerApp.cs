@@ -1,12 +1,14 @@
 using BatComputer.Abstractions;
-using MattEland.BatComputer.ConsoleApp.Renderables;
+using BatComputer.Skins;
+using Dumpify;
+using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Kernel;
+using MattEland.BatComputer.ConsoleApp.Helpers;
+using MattEland.BatComputer.ConsoleApp.Renderables;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
-using MattEland.BatComputer.ConsoleApp.Skins;
-using MattEland.BatComputer.ConsoleApp.Helpers;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -60,7 +62,7 @@ public class BatComputerApp
                         {
                             string response = await GetKernelPromptResponseAsync(appKernel, prompt);
 
-                            DisplayChatResponse(response);
+                            DisplayChatResponse(appKernel, response);
                         }
                     }
                     break;
@@ -71,7 +73,7 @@ public class BatComputerApp
                         {
                             string chatResponse = await GetChatPromptResponseAsync(appKernel, prompt);
 
-                            DisplayChatResponse(chatResponse);
+                            DisplayChatResponse(appKernel, chatResponse);
                         }
                     }
                     break;
@@ -79,7 +81,7 @@ public class BatComputerApp
                     {
                         string response = await GetKernelPromptResponseAsync(appKernel, appKernel.LastMessage!);
 
-                        DisplayChatResponse(response);
+                        DisplayChatResponse(appKernel, response);
                     }
                     break;
                 case MainMenuOption.ShowPlanTree:
@@ -124,8 +126,17 @@ public class BatComputerApp
         yield return MainMenuOption.Quit;
     }
 
-    private void DisplayChatResponse(string chatResponse)
+    private void DisplayChatResponse(IAppKernel kernel, string chatResponse)
     {
+        while (kernel.Widgets.Any())
+        {
+            IWidget widget = kernel.Widgets.Dequeue();
+            widget.Dump(label: widget.ToString(),
+                typeNames: new TypeNamingConfig { ShowTypeNames = false }, 
+                tableConfig: new TableConfig { ShowTableHeaders = false }, 
+                members: new MembersConfig { IncludeFields = false, IncludeNonPublicMembers = false });
+        }
+
         AnsiConsole.MarkupLine($"[{Skin.AgentStyle}]{Markup.Escape(Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
         AnsiConsole.WriteLine();
     }

@@ -1,4 +1,4 @@
-﻿namespace BatComputer.Plugins.Weather;
+﻿namespace BatComputer.Plugins.Weather.Models;
 
 public class GeoCodingResponse
 {
