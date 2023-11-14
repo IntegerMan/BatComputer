@@ -16,9 +16,9 @@ namespace MattEland.BatComputer.Kernel;
 public class MePlugin
 {
     private readonly KernelSettings _settings;
-    private readonly IKernel _kernel;
+    private readonly AppKernel _kernel;
 
-    public MePlugin(KernelSettings settings, IKernel kernel)
+    public MePlugin(KernelSettings settings, AppKernel kernel)
     {
         _settings = settings;
         _kernel = kernel;
@@ -27,13 +27,13 @@ public class MePlugin
     [SKFunction, Description("Gets the user's current zip code")]
     public string GetZipCode()
     {
-        return "43081";
+        return "43081"; // TODO: Read from settings
     }
 
     [SKFunction, Description("Gets the user's current city")]
     public string GetCity()
     {
-        return "Columbus, Ohio";
+        return "Columbus, Ohio"; // TODO: Read from settings
     }
 
     [SKFunction, Description("Gets the user's clothing preferences based on the weather and rain")]
@@ -47,12 +47,7 @@ public class MePlugin
     {
         string command = $"{ChatPlugin.SystemText}. Given the following user preferences: {clothingPreferences} and weather summary {weather} provide a recommendation based on the user's message: {originalMessage}. Don't say it is sunny if it is night.";
 
-        var completion = _kernel.GetService<IChatCompletion>();
-        var chat = completion.CreateNewChat(command);
-        var result = await completion.GetChatCompletionsAsync(chat);
-        var chatResult = await result[0].GetChatMessageAsync();
-
-        return chatResult.Content;
+        return await _kernel.GetPromptedReplyAsync(command);
     }
 
 }

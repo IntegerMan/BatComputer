@@ -1,5 +1,4 @@
 ﻿using BatComputer.Plugins.Weather;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -8,6 +7,8 @@ using LLamaSharp.SemanticKernel.TextCompletion;
 using Microsoft.SemanticKernel.AI.TextCompletion;
 using LLama.Common;
 using LLama;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -16,24 +17,11 @@ public class AppKernel
     private readonly KernelSettings _settings;
     public IKernel Kernel { get; }
     public SequentialPlanner? Planner { get; }
+    private readonly SequentialPlannerConfig _plannerConfig;
+
     private readonly ChatPlugin _chat;
 
     public Plan? LastPlan { get; private set; }
-
-    public AppKernel(KernelSettings settings, ILoggerFactory loggerFactory)
-    {
-        _settings = settings;
-        KernelBuilder builder = new();
-        builder.WithLoggerFactory(loggerFactory);
-        Kernel = BuildKernel(settings, builder);
-
-        _chat = new ChatPlugin(Kernel);
-
-        ImportFunctions();
-
-        Planner = CreatePlanner();
-        Planner.WithInstrumentation(loggerFactory);
-    }
 
     public AppKernel(KernelSettings settings)
     {
@@ -41,11 +29,17 @@ public class AppKernel
         KernelBuilder builder = new();
         Kernel = BuildKernel(settings, builder);
 
-        _chat = new ChatPlugin(Kernel);
+        _chat = new ChatPlugin(this);
 
         ImportFunctions();
 
-        Planner = CreatePlanner();
+        _plannerConfig = new SequentialPlannerConfig();
+        _plannerConfig.AllowMissingFunctions = false;
+        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
+
+        Planner = new SequentialPlanner(Kernel, _plannerConfig);
     }
 
     private static IKernel BuildKernel(KernelSettings settings, KernelBuilder builder)
@@ -94,26 +88,14 @@ public class AppKernel
         //Kernel.ImportFunctions(new TextPlugin(), "Strings");
         //Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
         Kernel.ImportFunctions(new OpenMeteoPlugin(), "Weather");
-        Kernel.ImportFunctions(new MePlugin(_settings, Kernel), "User");
+        Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
         // TODO: Add a memory plugin
     }
 
-    private readonly SequentialPlannerConfig _plannerConfig = new();
     private static LLamaWeights _model;
     private static LLamaContext _context;
-
-    private SequentialPlanner CreatePlanner()
-    {
-        _plannerConfig.AllowMissingFunctions = false;
-        _plannerConfig.ExcludedPlugins.Add("SemanticFunctions");
-        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
-
-        return new SequentialPlanner(Kernel, _plannerConfig);
-    }
 
     public bool IsFunctionExcluded(FunctionView f) 
         => f.PluginName == "SequentialPlanner_Excluded" ||
@@ -123,11 +105,15 @@ public class AppKernel
     public async Task<string> GetChatResponseAsync(string prompt)
     {
         LastPlan = null;
+        LastMessage = prompt;
+        LastGoal = null;
 
         return await _chat.GetChatResponse(prompt);
     }
 
     public bool HasPlanner => Planner != null;
+    public string? LastMessage { get; private set; }
+    public string? LastGoal { get; private set; }
 
     public async Task<Plan> PlanAsync(string userText)
     {
@@ -137,17 +123,29 @@ public class AppKernel
         }
 
         LastPlan = null;
+        LastMessage = null;
 
-        string goal = $"User: {userText}" + """
-
-                                            ---------------------------------------------
-
-                                            Respond to this statement as if you are Alfred and the user is Batman.
-                                            """;
-        Plan plan = await Planner!.CreatePlanAsync(goal);
+        LastGoal = """
+                      The following is a chat transcript between the user and you. Respond in the best way that you can, retrieving the most relevant information possible.
+                      ---------------------------------------------
+                      """ +
+                      $"User: {userText}\r\n" + 
+                      "Bot: ";
+        Plan plan = await Planner!.CreatePlanAsync(LastGoal);
 
         LastPlan = plan;
+        LastMessage = userText;
 
         return plan;
+    }
+
+    internal async Task<string> GetPromptedReplyAsync(string command)
+    {
+        IChatCompletion completion = Kernel.GetService<IChatCompletion>();
+        ChatHistory chat = completion.CreateNewChat(command);
+        IReadOnlyList<IChatResult> result = await completion.GetChatCompletionsAsync(chat);
+        ChatMessageBase chatResult = await result[0].GetChatMessageAsync();
+
+        return chatResult.Content;
     }
 }

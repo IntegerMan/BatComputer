@@ -18,54 +18,34 @@ public class ChatPlugin
 {
     public const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
 
-    private readonly IKernel _kernel;
-    private readonly ISKFunction _chatFunc;
+    private readonly AppKernel _kernel;
 
-    private readonly ISKFunction _recFunc;
-    //private readonly ISKFunction _webFunc;
-
-    public ChatPlugin(IKernel kernel)
+    public ChatPlugin(AppKernel kernel)
     {
         _kernel = kernel;
+    }
 
-        //ChatRequestSettings llamaSettings = new(); 
-        //OpenAIRequestSettings requestSettings = new() { ChatSystemPrompt = SystemText, ResultsPerPrompt = 1 };
-
-        string chatPrompt = @$"{SystemText}
+    [SKFunction, Description("Sends a question to a large language model as part of a chat traanscript")]
+    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input)
+    {
+        string prompt = @$"{SystemText}
 
 Here is a sample chat transcript:
 
 Bot: How can I help you?
-User: {{$input}}
+User: {input}
 
 ---------------------------------------------
 
 Bot: ";
-        _chatFunc = kernel.CreateSemanticFunction(chatPrompt, "Chat", "SemanticFunctions");
-
-        _recFunc = kernel.CreateSemanticFunction("Given the following user preferences: {{$summary}} and weather summary {{$weather}}, provide a recommendation based on the user's message: {{$originalMessage}}", "Recommend", "SemanticFunctions");
-
-        /*
-        string webPrompt = "Make a GET request to {{$input}} and describe the text of that site.";
-        _webFunc = kernel.CreateSemanticFunction(webPrompt, requestSettings, "WebSummarize", "SemanticFunctions");
-        */
+        return await _kernel.GetPromptedReplyAsync(prompt);
     }
 
-    [SKFunction, Description("Gets a response to a question")]
-    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input)
+    [SKFunction, Description("Sends a raw prompt to a large language model and returns the response")]
+    public async Task<string> GetPromptResponse([Description("The prompt for the large language model")] string prompt)
     {
-        KernelResult result = await _kernel.RunAsync(input, _chatFunc);
-        return result.GetValue<string>() ?? "";
+        return await _kernel.GetPromptedReplyAsync($"{SystemText} {prompt}");
     }
-
-    /*
-    [SKFunction, Description("Summarizes the contents of a web page"), UsedImplicitly]
-    public async Task<string> InterpretWebPage([Description("A web page URL the user is interested in")] string url)
-    {
-        KernelResult result = await _kernel.RunAsync(url, _webFunc);
-        return result.GetValue<string>() ?? "";
-    }
-    */
 
     [SKFunction, Description("Displays a response to the user")]
     public string DisplayResponse([Description("The response to show to the user")] string response) => response;

@@ -6,6 +6,7 @@ using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.ConsoleApp.Helpers;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -74,6 +75,13 @@ public class BatComputerApp
                         }
                     }
                     break;
+                case MainMenuOption.RetryLastMessage:
+                    {
+                        string response = await GetKernelPromptResponseAsync(appKernel, appKernel.LastMessage!);
+
+                        DisplayChatResponse(response);
+                    }
+                    break;
                 case MainMenuOption.ShowPlanTree:
                     appKernel.LastPlan!.RenderTree(Skin);
                     break;
@@ -101,6 +109,11 @@ public class BatComputerApp
 
         yield return MainMenuOption.Chat;
         yield return MainMenuOption.ListPlugins;
+
+        if (!string.IsNullOrWhiteSpace(appKernel.LastMessage))
+        {
+            yield return MainMenuOption.RetryLastMessage;
+        }
 
         if (appKernel.LastPlan != null)
         {
@@ -231,6 +244,8 @@ public class BatComputerApp
             .HideCompleted(false)
             .StartAsync(async ctx =>
             {
+                // SKContext result = await appKernel.Planner.ExecutePlanAsync(appKernel.LastGoal, appKernel.Kernel.CreateNewContext());
+
                 // Register the tasks we'll be accomplishing so the user can see them in order
                 foreach (Plan step in plan.Steps)
                 {

@@ -12,5 +12,7 @@ public enum MainMenuOption
     ShowPlanTree,
     [Description("Show last plan JSON")]
     ShowPlanJson,
-    Quit
+    Quit,
+    [Description("Repeat last message")]
+    RetryLastMessage
 }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace BatComputer.Plugins.Weather;
 
@@ -17,6 +13,11 @@ public class OpenMeteoPlugin
     [SKFunction, Description("Gets a latitude and longitude string from a city, zip code, or location. Result is formatted like: lat,long")]
     public async Task<string> GetLatLong([Description("The city or location such as Columbus, Ohio or a Zip code like 43081")] string location)
     {
+
+        if (location.Contains('$') || location.Contains('.'))
+        {
+            return $"{location} doesn't seem like a valid location. I can't find its latitude and longitude.";
+        }
 
         // If we include a comma, ignore the comma and content to the right of it
         if (location.Contains(','))
@@ -31,7 +32,7 @@ public class OpenMeteoPlugin
 
         if (geoCodingResponse?.Results == null || geoCodingResponse.Results.Count == 0)
         {
-            return "Could not interpret lat / long from JSON: " + json;
+            return $"Could not interpret lat / long for {location} based on the OpenMeteo response: {json}";
         }
 
         GeoCodingLocation geo = geoCodingResponse.Results.First();
@@ -55,20 +56,11 @@ public class OpenMeteoPlugin
             return latLong + " does not appear to be a valid latitude and longitude.";
         }
 
-        string[] latLongArray = latLong.Split(',');
-        string lat = latLongArray[0];
-        string lon = latLongArray[1];
+        (string lat, string lon) = GetLatLongFromString(latLong);
 
-        string url = $"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover&daily=weather_code,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York";
+        WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
 
-        string json = await GetJsonFromRestRequestAsync(url);
-        WeatherResponse? response = JsonConvert.DeserializeObject<WeatherResponse>(json);
-        CurrentWeather? current = response?.Current;
-
-        if (current == null)
-        {
-            return $"Could not interpret weather data: {json}";
-        }
+        CurrentWeather current = response.Current!;
 
         StringBuilder sb = new();
 
@@ -83,7 +75,7 @@ public class OpenMeteoPlugin
             sb.Append("It is dark outside. ");
         }
 
-        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. Cloud cover is currently {current.CloudCoverPercent:P}");
+        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. Cloud cover is currently {current.CloudCoverPercent:P0}");
 
         if (current.Snowfall > 0)
         {
@@ -99,6 +91,99 @@ public class OpenMeteoPlugin
         }
 
         return sb.ToString();
+    }
+
+    private static (string lat, string lon) GetLatLongFromString(string latLong)
+    {
+        string[] latLongArray = latLong.Split(',');
+        string lat = latLongArray[0];
+        string lon = latLongArray[1];
+        return (lat, lon);
+    }
+
+    [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
+    public async Task<string> GetTomorrowWeatherFromLatLong([Description("The latitude and longitude. Formatted like: lat,long")] string latLong)
+    {
+        if (!latLong.Contains(','))
+        {
+            return latLong + " does not appear to be a valid latitude and longitude.";
+        }
+
+        (string lat, string lon) = GetLatLongFromString(latLong);
+
+        WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
+        DailyWeather forecast = response.Daily!;
+
+        int index = 1; // 0 is always today, so 1 is tomorrow
+
+        return BuildWeatherDayForecastString(forecast, index);
+    }
+
+    private static string BuildWeatherDayForecastString(DailyWeather forecast, int index)
+    {
+        StringBuilder sb = new();
+
+        string? weatherName = CurrentWeatherCode(forecast.WeatherCode![index]);
+        if (!string.IsNullOrEmpty(weatherName))
+        {
+            sb.Append($"Predicted weather conditions on {forecast.Time[index]}: {weatherName}. ");
+        }
+
+        sb.Append($"The temperature will range between {forecast.ApparentTemperatureMin[index]}\u00b0F and {forecast.ApparentTemperatureMax[index]}\u00b0F. ");
+        sb.Append($"The precipitation chance is {forecast.PrecipitationChanceMax[index]}%. ");
+
+        AddPrecipitationNote(sb, forecast.Rain[index], "rain");
+        AddPrecipitationNote(sb, forecast.Showers[index], "showers");
+        AddPrecipitationNote(sb, forecast.Snowfall[index], "snow");
+        AddPrecipitationNote(sb, forecast.Precipitation[index], "precipitation");
+
+        return sb.ToString();
+    }
+
+    [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
+    public async Task<string> GetDailyWeatherFromLatLong([Description("The latitude and longitude. Formatted like: lat,long")] string latLong, [Description("A string representing a calendar date such as 9/10/80 or 2023-11-13")] string dateStr)
+    {
+        if (!latLong.Contains(','))
+        {
+            return latLong + " does not appear to be a valid latitude and longitude.";
+        }
+
+        (string lat, string lon) = GetLatLongFromString(latLong);
+
+        WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
+        DailyWeather forecast = response.Daily!;
+
+        DateTime date = DateTime.Parse(dateStr);
+        string time = date.ToString("yyyy-MM-dd");
+
+        int index = forecast.Time.IndexOf(time);
+
+        return index == -1 
+            ? $"I couldn't get weather forecast information on {dateStr}" 
+            : BuildWeatherDayForecastString(forecast, index);
+    }
+
+    private static void AddPrecipitationNote(StringBuilder sb, decimal amount, string precipType)
+    {
+        if (amount > 0)
+        {
+            sb.Append($"You can expect {amount} inches of {precipType}");
+        }
+    }
+
+    private static async Task<WeatherResponse> GetWeatherInformationAsync(string lat, string lon)
+    {
+        string url = $"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover&daily=weather_code,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York";
+
+        string json = await GetJsonFromRestRequestAsync(url);
+        WeatherResponse? response = JsonConvert.DeserializeObject<WeatherResponse>(json);
+
+        if (response == null)
+        {
+            throw new JsonSerializationException($"Could not convert {json} into a WeatherResponse");
+        }
+
+        return response;
     }
 
     private static string? CurrentWeatherCode(int weatherCode) 
