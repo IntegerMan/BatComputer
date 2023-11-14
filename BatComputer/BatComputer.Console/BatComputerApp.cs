@@ -1,3 +1,4 @@
+using BatComputer.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel;
@@ -6,7 +7,6 @@ using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.ConsoleApp.Helpers;
-using Microsoft.SemanticKernel.Orchestration;
 
 namespace MattEland.BatComputer.ConsoleApp;
 

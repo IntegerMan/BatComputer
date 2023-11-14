@@ -1,7 +1,7 @@
 ﻿using BatComputer.Abstractions;
 using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp.Skins;
+namespace BatComputer.Skins;
 
 public sealed class BatComputerSkin : ConsoleSkin {
     public override string AppName => "Bat Computer";

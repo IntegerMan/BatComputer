@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp.Skins;
+namespace BatComputer.Abstractions;
 
 public abstract class ConsoleSkin {
     public abstract string AppName { get; }

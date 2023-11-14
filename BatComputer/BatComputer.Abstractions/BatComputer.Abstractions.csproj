@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>MattEland.BatComputer.Abstractions</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
+		<PackageReference Include="Spectre.Console" Version="0.47.0" />
+	</ItemGroup>
+
+</Project>

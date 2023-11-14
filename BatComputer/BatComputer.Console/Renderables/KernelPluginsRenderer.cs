@@ -2,7 +2,7 @@
 using Microsoft.SemanticKernel;
 using Spectre.Console;
 using System.Text;
-using MattEland.BatComputer.ConsoleApp.Skins;
+using BatComputer.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
