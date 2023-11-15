@@ -13,6 +13,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Abstractions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Skins", "BatComputer.Skins\BatComputer.Skins.csproj", "{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Console", "Console", "{42B01B8B-DA2E-4EC7-9B9B-E056644E1ED6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{881F8628-F0BD-4D31-AD39-7378039B402B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +48,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CE9B4BC4-1C27-4C73-AED6-B9AF84D62A05} = {42B01B8B-DA2E-4EC7-9B9B-E056644E1ED6}
+		{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB} = {881F8628-F0BD-4D31-AD39-7378039B402B}
+		{AB666C01-7534-4B62-BC7A-B0751388F00B} = {3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}
+		{E9E51E20-008A-411C-9DEE-E136E35A2297} = {881F8628-F0BD-4D31-AD39-7378039B402B}
+		{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3} = {42B01B8B-DA2E-4EC7-9B9B-E056644E1ED6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0DA24201-4EA1-4CB4-9651-A6D872FAB756}
