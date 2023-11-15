@@ -1,5 +1,7 @@
+using System.Reflection;
 using BatComputer.Abstractions;
 using BatComputer.Skins;
+using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
 using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.ConsoleApp.Renderables;
@@ -16,7 +18,8 @@ public class BatComputerApp
     {
         WelcomeRenderer.ShowWelcome(Skin);
 
-        LoadSettings();
+        _settings.Load(Skin);
+        _settings.Validate();
 
         AppKernel appKernel = new(_settings);
         appKernel.RenderKernelPluginsChart(Skin);
@@ -54,21 +57,17 @@ public class BatComputerApp
         yield return new ListPluginsCommand(this);
         yield return new ShowPlanTreeCommand(this);
         yield return new ShowPlanJsonCommand(this);
-        yield return new QuitCommand(this);
-    }
 
-    private void LoadSettings()
-    {
-        AnsiConsole.Status().Start("Loading Configuration", ctx =>
+        // Add Diagnostics for each IWidget - TODO: This probably belongs in a submenu
+        IEnumerable<Type> widgetTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => typeof(IWidget).IsAssignableFrom(type) && !type.IsAbstract);
+
+        foreach (Type widgetType in widgetTypes)
         {
-            ctx.Spinner(Skin.Spinner);
+            yield return new DisplaySampleWidgetCommand(this, () => (IWidget) Activator.CreateInstance(widgetType)!, widgetType.Name);
+        }
 
-            _settings.Load(Skin);
-
-            ctx.Status("Validating settings");
-            AnsiConsole.WriteLine();
-
-            _settings.Validate();
-        });
+        yield return new QuitCommand(this);
     }
 }

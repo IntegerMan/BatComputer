@@ -5,17 +5,33 @@ namespace BatComputer.Plugins.Weather.Widgets;
 
 public class CurrentWeatherWidget : WidgetBase
 {
-    public CurrentWeatherWidget(string title = "Current Weather") : base(title)
+    public CurrentWeatherWidget() : this("Current Weather")
+    {
+
+    }
+
+    public CurrentWeatherWidget(string title) : base(title)
     {
 
     }
 
     public string? Conditions { get; set; } = "Not detected";
-    public required string Temperature { get; init; }
+    public required string Temperature { get; set; }
     [Description("Cloud Cover")]
-    public required string CloudCover { get; init; }
+    public required string CloudCover { get; set; }
 
-    public bool IsDay { get; init; }
-    public required string Rainfall { get; init; }
-    public required string Snowfall { get; init; }
+    public bool IsDay { get; set; }
+    public required string Rainfall { get; set; }
+    public required string Snowfall { get; set; }
+
+    public override void UseSampleData()
+    {
+        SetTitle("Widgetville Weather");
+        IsDay = true;
+        Snowfall = "3.5 inches";
+        Rainfall = "0.0 inches";
+        CloudCover = "42%";
+        Conditions = "Partly Cloudy";
+        Temperature = "28\u00b0F";
+    }
 }

@@ -25,6 +25,8 @@ public static class SettingsLoader
         ReadRequiredSetting(config, skin, "AzureOpenAIKey", v => _settings.AzureOpenAiKey = v);
         ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => _settings.OpenAiDeploymentName = v);
 
+        AnsiConsole.WriteLine();
+
         return _settings;
     }
 

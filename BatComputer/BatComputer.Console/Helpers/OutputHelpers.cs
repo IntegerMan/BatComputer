@@ -19,13 +19,18 @@ public static class OutputHelpers
         while (kernel.Widgets.Any())
         {
             IWidget widget = kernel.Widgets.Dequeue();
-            widget.Dump(label: widget.ToString(),
-                typeNames: new TypeNamingConfig { ShowTypeNames = false },
-                tableConfig: new TableConfig { ShowTableHeaders = false },
-                members: new MembersConfig { IncludeFields = false, IncludeNonPublicMembers = false });
+            widget.Render();
         }
 
         AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
         AnsiConsole.WriteLine();
+    }
+
+    public static void Render(this IWidget widget)
+    {
+        widget.Dump(label: widget.ToString(),
+            typeNames: new TypeNamingConfig {ShowTypeNames = false},
+            tableConfig: new TableConfig {ShowTableHeaders = false},
+            members: new MembersConfig {IncludeFields = false, IncludeNonPublicMembers = false});
     }
 }

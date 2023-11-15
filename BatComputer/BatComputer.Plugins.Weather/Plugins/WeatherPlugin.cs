@@ -34,13 +34,13 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         StringBuilder sb = new();
 
-        CurrentWeatherWidget widget = new(!string.IsNullOrWhiteSpace(locationDescription) ? $"Weather for {locationDescription}" : "Current Weather")
+        CurrentWeatherWidget widget = new(!string.IsNullOrWhiteSpace(locationDescription) ? $"{locationDescription} Weather" : "Current Weather")
         {
             Temperature = $"{current.Temperature}\u00b0F",
             CloudCover = $"{current.CloudCoverPercent:P0}",
             IsDay = current.IsDay,
-            Rainfall = $"{current.Rain} inches",
-            Snowfall = $"{current.Snowfall} inches"
+            Rainfall = $"{current.Rain:D1} inches",
+            Snowfall = $"{current.Snowfall:D1} inches"
         };
 
         string? weatherName = CurrentWeatherCode(current.WeatherCode);

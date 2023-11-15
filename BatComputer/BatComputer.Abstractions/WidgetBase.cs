@@ -12,6 +12,7 @@ public abstract class WidgetBase : IWidget
     public void SetTitle(string? title) => _title = title;
 
     public string? GetTitle() => _title;
+    public abstract void UseSampleData();
 
     public override string ToString() => _title ?? GetType().Name;
 }

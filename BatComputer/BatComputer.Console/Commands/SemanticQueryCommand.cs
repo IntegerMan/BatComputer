@@ -20,7 +20,7 @@ public class SemanticQueryCommand : AppCommand
         }
     }
 
-    public override string DisplayText => $"Send request to {Skin.AppNameWithPrefix}";
+    public override string DisplayText => $"Query {Skin.AppNameWithPrefix}";
 
     public SemanticQueryCommand(BatComputerApp app) : base(app)
     {
