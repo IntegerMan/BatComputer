@@ -58,7 +58,9 @@ public class BatComputerApp
         yield return new ShowPlanTreeCommand(this);
         yield return new ShowPlanJsonCommand(this);
 
-        // Add Diagnostics for each IWidget - TODO: This probably belongs in a submenu
+        // TODO: These probably belong in a submenu
+        yield return new DisplayAllWidgetsCommand(this);
+        // Add Diagnostics for each IWidget 
         IEnumerable<Type> widgetTypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => typeof(IWidget).IsAssignableFrom(type) && !type.IsAbstract);
