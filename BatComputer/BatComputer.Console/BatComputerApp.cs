@@ -41,7 +41,6 @@ public class BatComputerApp
     {
         while (Menus.TryPeek(out MenuBase? activeMenu))
         {
-
             SelectionPrompt<AppCommand> choices = new SelectionPrompt<AppCommand>()
                     .Title($"[{Skin.NormalStyle}]Select an action[/]")
                     .HighlightStyle(Skin.AccentStyle)
