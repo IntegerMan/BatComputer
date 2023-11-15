@@ -1,5 +1,4 @@
-﻿using BatComputer.Plugins.Weather;
-using BatComputer.Plugins.Weather.Plugins;
+﻿using BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -11,6 +10,7 @@ using LLama;
 using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
+using Microsoft.SemanticKernel.Diagnostics;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -103,21 +103,13 @@ public class AppKernel : IAppKernel
         => f.PluginName == "SequentialPlanner_Excluded" ||
             _plannerConfig.ExcludedFunctions.Contains(f.Name) ||
             _plannerConfig.ExcludedPlugins.Contains(f.PluginName);
-
-    public async Task<string> GetChatResponseAsync(string prompt)
-    {
-        LastPlan = null;
-        LastMessage = prompt;
-        LastGoal = null;
-        Widgets.Clear();
-
-        return await _chat.GetChatResponse(prompt);
-    }
-
+    
     public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }
     public string? LastGoal { get; private set; }
     public Queue<IWidget> Widgets { get; } = new();
+    public string SystemText { get; set; } = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
+
     public void AddWidget(IWidget widget)
     {
         Widgets.Enqueue(widget);
@@ -141,6 +133,27 @@ public class AppKernel : IAppKernel
         LastMessage = userText;
 
         return plan;
+    }
+
+    public async Task<string> GetChatPromptResponseAsync(string prompt)
+    {
+        try
+        {
+            LastPlan = null;
+            LastMessage = prompt;
+            LastGoal = null;
+            Widgets.Clear();
+
+            return await _chat.GetChatResponse(prompt);
+        }
+        catch (HttpOperationException ex)
+        {
+            if (ex.Message.Contains("does not work with the specified model"))
+            {
+                return "Your model does not support the current option. You may be trying to use a completion model with a chat feature or vice versa. Try using a different deployment model.";
+            }
+            throw;
+        }
     }
 
     internal async Task<string> GetPromptedReplyAsync(string command)

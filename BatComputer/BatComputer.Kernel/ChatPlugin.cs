@@ -16,8 +16,6 @@ namespace MattEland.BatComputer.Kernel;
 
 public class ChatPlugin
 {
-    public const string SystemText = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
-
     private readonly AppKernel _kernel;
 
     public ChatPlugin(AppKernel kernel)
@@ -28,7 +26,7 @@ public class ChatPlugin
     [SKFunction, Description("Sends a question to a large language model as part of a chat traanscript")]
     public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input)
     {
-        string prompt = @$"{SystemText}
+        string prompt = @$"{_kernel.SystemText}
 
 Here is a sample chat transcript:
 
@@ -44,7 +42,7 @@ Bot: ";
     [SKFunction, Description("Sends a raw prompt to a large language model and returns the response")]
     public async Task<string> GetPromptResponse([Description("The prompt for the large language model")] string prompt)
     {
-        return await _kernel.GetPromptedReplyAsync($"{SystemText} {prompt}");
+        return await _kernel.GetPromptedReplyAsync($"{_kernel.SystemText} {prompt}");
     }
 
     [SKFunction, Description("Displays a response to the user")]

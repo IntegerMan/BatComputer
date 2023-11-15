@@ -1,15 +1,5 @@
-﻿using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
+﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using System.Security.Cryptography;
-using LLama.Common;
-using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-using LLamaSharp.SemanticKernel.TextCompletion;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -45,7 +35,7 @@ public class MePlugin
     [SKFunction, Description("Generates a recommendation for clothing to wear given weather conditions and user preferences")]
     public async Task<string> GetClothingRecommendation([Description("The user's preferences")] string clothingPreferences, [Description("A weather summary")] string weather, [Description("The user's original message")] string originalMessage)
     {
-        string command = $"{ChatPlugin.SystemText}. Given the following user preferences: {clothingPreferences} and weather summary {weather} provide a recommendation based on the user's message: {originalMessage}. Don't say it is sunny if it is night.";
+        string command = $"{_kernel.SystemText}. Given the following user preferences: {clothingPreferences} and weather summary {weather} provide a recommendation based on the user's message: {originalMessage}. Don't say it is sunny if it is night.";
 
         return await _kernel.GetPromptedReplyAsync(command);
     }

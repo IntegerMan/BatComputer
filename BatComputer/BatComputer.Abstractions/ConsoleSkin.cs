@@ -17,4 +17,8 @@ public abstract class ConsoleSkin {
     public virtual string AgentStyle { get; } = "Cyan";
     public virtual string DebugStyle { get; } = "grey69";
     public virtual string AgentName { get; } = "Bot";
+
+    public string AppNameWithPrefix => string.IsNullOrWhiteSpace(AppNamePrefix) 
+            ? AppName 
+            : $"{AppNamePrefix} {AppName}";
 }

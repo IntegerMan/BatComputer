@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Dumpify;
+using MattEland.BatComputer.Abstractions;
+using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Json;
 
@@ -9,6 +11,21 @@ public static class OutputHelpers
     public static void RenderJson(this object obj)
     {
         AnsiConsole.Write(new JsonText(JsonConvert.SerializeObject(obj)));
+        AnsiConsole.WriteLine();
+    }
+
+    public static void DisplayChatResponse(BatComputerApp app, IAppKernel kernel, string chatResponse)
+    {
+        while (kernel.Widgets.Any())
+        {
+            IWidget widget = kernel.Widgets.Dequeue();
+            widget.Dump(label: widget.ToString(),
+                typeNames: new TypeNamingConfig { ShowTypeNames = false },
+                tableConfig: new TableConfig { ShowTableHeaders = false },
+                members: new MembersConfig { IncludeFields = false, IncludeNonPublicMembers = false });
+        }
+
+        AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
         AnsiConsole.WriteLine();
     }
 }
