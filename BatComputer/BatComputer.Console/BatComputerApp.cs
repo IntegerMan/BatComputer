@@ -3,6 +3,7 @@ using BatComputer.Abstractions;
 using BatComputer.Skins;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
+using MattEland.BatComputer.ConsoleApp.Menus;
 using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using Spectre.Console;
@@ -24,6 +25,8 @@ public class BatComputerApp
         AppKernel appKernel = new(_settings);
         appKernel.RenderKernelPluginsChart(Skin);
 
+        Menus.Push(new RootMenu(this));
+
         await RunMainLoopAsync(appKernel);
 
         AnsiConsole.WriteLine();
@@ -32,44 +35,22 @@ public class BatComputerApp
         return 0;
     }
 
+    public Stack<MenuBase> Menus { get; } = new();
+
     private async Task RunMainLoopAsync(AppKernel appKernel)
     {
-        do
+        while (Menus.TryPeek(out MenuBase? activeMenu))
         {
+
             SelectionPrompt<AppCommand> choices = new SelectionPrompt<AppCommand>()
                     .Title($"[{Skin.NormalStyle}]Select an action[/]")
                     .HighlightStyle(Skin.AccentStyle)
-                    .AddChoices(GetMainMenuOptions().Where(c => c.CanExecute(appKernel)))
+                    .AddChoices(activeMenu.Commands.Where(c => c.CanExecute(appKernel)))
                     .UseConverter(c => c.DisplayText);
 
             AppCommand choice = AnsiConsole.Prompt(choices);
+
             await choice.ExecuteAsync( appKernel);
-        } while (!ExitRequested);
-    }
-
-    public bool ExitRequested { get; set; }
-
-    private IEnumerable<AppCommand> GetMainMenuOptions()
-    {
-        yield return new SemanticQueryCommand(this);
-        yield return new ChatCommand(this);
-        yield return new RetryCommand(this);
-        yield return new ListPluginsCommand(this);
-        yield return new ShowPlanTreeCommand(this);
-        yield return new ShowPlanJsonCommand(this);
-
-        // TODO: These probably belong in a submenu
-        yield return new DisplayAllWidgetsCommand(this);
-        // Add Diagnostics for each IWidget 
-        IEnumerable<Type> widgetTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .Where(type => typeof(IWidget).IsAssignableFrom(type) && !type.IsAbstract);
-
-        foreach (Type widgetType in widgetTypes)
-        {
-            yield return new DisplaySampleWidgetCommand(this, () => (IWidget) Activator.CreateInstance(widgetType)!, widgetType.Name);
         }
-
-        yield return new QuitCommand(this);
     }
 }
