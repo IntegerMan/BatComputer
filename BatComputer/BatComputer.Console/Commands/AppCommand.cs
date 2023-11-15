@@ -1,4 +1,5 @@
 ﻿using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;

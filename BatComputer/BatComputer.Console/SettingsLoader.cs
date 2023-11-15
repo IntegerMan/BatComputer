@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using System.Reflection;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.ConsoleApp.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp;
 

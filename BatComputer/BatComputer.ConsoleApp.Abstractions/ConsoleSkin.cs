@@ -1,15 +1,17 @@
 ﻿using Spectre.Console;
 
-namespace MattEland.BatComputer.Abstractions;
+namespace MattEland.BatComputer.ConsoleApp.Abstractions;
 
 public abstract class ConsoleSkin {
     public abstract string AppName { get; }
     public virtual string AppNamePrefix => string.Empty;
     public virtual Spinner Spinner => Spinner.Known.Default;
     public virtual string NormalStyle => "White";
-    public virtual Spectre.Console.Color NormalColor => Spectre.Console.Color.White;
+    public virtual Color NormalColor => Color.White;
     public virtual string AccentStyle => "Blue";
-    public virtual Spectre.Console.Color AccentColor => Spectre.Console.Color.Blue;
+    public virtual Color AccentColor => Color.Blue;
+    public virtual Color ChartColor1 => NormalColor;
+    public virtual Color ChartColor2 => AccentColor;
     public virtual string ErrorStyle => "Red";
     public virtual string ErrorEmoji => ":stop_sign:";
     public virtual string WarningStyle => "Yellow";

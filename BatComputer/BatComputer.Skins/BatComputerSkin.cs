@@ -1,4 +1,4 @@
-﻿using MattEland.BatComputer.Abstractions;
+﻿using MattEland.BatComputer.ConsoleApp.Abstractions;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Skins;
@@ -19,4 +19,7 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override string AccentStyle => "steelblue";
     public override Color AccentColor => Color.SteelBlue;
     public override string WarningStyle => "darkorange";
+
+    public override Color ChartColor1 => Color.LightGoldenrod2_1;
+    public override Color ChartColor2 => Color.DarkGoldenrod;
 }

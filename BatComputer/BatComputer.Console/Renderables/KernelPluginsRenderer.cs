@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel;
 using Spectre.Console;
 using System.Text;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.ConsoleApp.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
@@ -19,10 +20,11 @@ public static class KernelPluginsRenderer
                     .OrderByDescending(g => g.Count())
                     .ThenBy(g => g.Key);
 
+        int index = 1;
         AnsiConsole.Write(new BarChart()
             .Label(headerMarker)
             .LeftAlignLabel()
-            .AddItems(funcsByPlugin, item => new BarChartItem(item.Key, item.Count()))); // TODO: Colorize by value
+            .AddItems(funcsByPlugin, item => new BarChartItem(item.Key, item.Count(), color: ++index % 2 == 0 ? skin.ChartColor1 : skin.ChartColor2)));
 
         AnsiConsole.WriteLine();
     }

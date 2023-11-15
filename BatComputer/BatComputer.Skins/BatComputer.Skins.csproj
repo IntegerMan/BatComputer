@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
+    <ProjectReference Include="..\BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

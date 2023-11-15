@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
+    <ProjectReference Include="..\BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj" />
     <ProjectReference Include="..\BatComputer.Kernel\BatComputer.Kernel.csproj" />
     <ProjectReference Include="..\BatComputer.Skins\BatComputer.Skins.csproj" />
   </ItemGroup>

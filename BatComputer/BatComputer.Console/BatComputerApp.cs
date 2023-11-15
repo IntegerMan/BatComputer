@@ -1,5 +1,6 @@
 using System.Reflection;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
 using MattEland.BatComputer.ConsoleApp.Menus;
 using MattEland.BatComputer.Kernel;
