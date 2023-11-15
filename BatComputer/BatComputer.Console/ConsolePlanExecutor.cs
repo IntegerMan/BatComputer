@@ -1,8 +1,8 @@
-﻿using MattEland.BatComputer.Kernel;
+﻿using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
-using BatComputer.Abstractions;
 using Microsoft.SemanticKernel;
 
 namespace MattEland.BatComputer.ConsoleApp;

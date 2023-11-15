@@ -18,7 +18,7 @@ public class DisplaySampleWidgetCommand : AppCommand
         return Task.CompletedTask;
     }
 
-    public override string DisplayText => $"Display sample {_widgetName} widget";
+    public override string DisplayText => $"Display Test {_widgetName}";
 
     public DisplaySampleWidgetCommand(BatComputerApp app, Func<IWidget> widgetFactory, string widgetName) : base(app)
     {

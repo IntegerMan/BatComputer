@@ -8,12 +8,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
 	  <PackageReference Include="LLamaSharp" Version="0.8.0" />
 	  <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.8.0" />
 	  <PackageReference Include="LLamaSharp.semantic-kernel" Version="0.8.0" />
 	  <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
 	  <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta6" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta6" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Document" Version="1.0.0-beta6" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.0-beta6" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta6" />
 	</ItemGroup>
 
 	<ItemGroup>

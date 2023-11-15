@@ -23,6 +23,8 @@ public class RetryCommand : AppCommand
         OutputHelpers.DisplayChatResponse(App, kernel, response);
     }
 
+    public override string DisplayText => "Repeat Last Request";
+
     public override bool CanExecute(AppKernel kernel) => kernel.LastMessage != null;
 
     public RetryCommand(BatComputerApp app) : base(app)

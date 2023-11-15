@@ -11,6 +11,8 @@ using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.SemanticKernel.Plugins.Web.Bing;
+using Microsoft.SemanticKernel.Plugins.Web;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -93,8 +95,16 @@ public class AppKernel : IAppKernel
         Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
+        if (!string.IsNullOrWhiteSpace(_settings.BingKey))
+        {
+            WebSearchConnector = new BingConnector(_settings.BingKey);
+            Kernel.ImportFunctions(new WebSearchEnginePlugin(WebSearchConnector), "Search");
+        }
+
         // TODO: Add a memory plugin
     }
+
+    public BingConnector WebSearchConnector { get; private set; }
 
     private static LLamaWeights _model;
     private static LLamaContext _context;

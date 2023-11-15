@@ -1,11 +1,10 @@
 using System.Reflection;
-using BatComputer.Abstractions;
-using BatComputer.Skins;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
 using MattEland.BatComputer.ConsoleApp.Menus;
 using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.ConsoleApp.Renderables;
+using MattEland.BatComputer.ConsoleApp.Skins;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp;

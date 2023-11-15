@@ -19,6 +19,8 @@ public class KernelSettings {
     [Required]
     public string OpenAiDeploymentName { get; set; }
 
+    public string? BingKey { get; set; }
+
     public void Validate()
     {
         List<ValidationResult> results = Validate(new ValidationContext(this)).ToList();

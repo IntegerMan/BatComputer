@@ -1,7 +1,7 @@
-﻿using BatComputer.Abstractions;
+﻿using MattEland.BatComputer.Abstractions;
 using Spectre.Console;
 
-namespace BatComputer.Skins;
+namespace MattEland.BatComputer.ConsoleApp.Skins;
 
 public sealed class BatComputerSkin : ConsoleSkin {
     public override string AppName => "Bat Computer";
@@ -12,10 +12,11 @@ public sealed class BatComputerSkin : ConsoleSkin {
     public override Color NormalColor => Color.Yellow;
 
     public override string SuccessStyle => "gold1";
-    public override string AgentStyle => "steelblue";
+    public override string AgentStyle => "skyblue3";
 
     public override string AgentName => "Alfred";
 
-    public override string AccentStyle => "darkorange";
-    public override Color AccentColor => Color.DarkOrange;
+    public override string AccentStyle => "steelblue";
+    public override Color AccentColor => Color.SteelBlue;
+    public override string WarningStyle => "darkorange";
 }
