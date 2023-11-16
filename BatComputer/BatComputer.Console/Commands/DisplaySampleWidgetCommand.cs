@@ -13,7 +13,7 @@ public class DisplaySampleWidgetCommand : AppCommand
     {
         IWidget widget = _widgetFactory();
         widget.UseSampleData();
-        widget.Render();
+        widget.Render(Skin);
 
         return Task.CompletedTask;
     }

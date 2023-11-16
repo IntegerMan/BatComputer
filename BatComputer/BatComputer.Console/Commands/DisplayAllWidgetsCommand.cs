@@ -17,7 +17,7 @@ public class DisplayAllWidgetsCommand : AppCommand
             IWidget widget = (IWidget)Activator.CreateInstance(widgetType)!;
 
             widget.UseSampleData();
-            widget.Render();
+            widget.Render(Skin);
         }
 
         return Task.CompletedTask;
