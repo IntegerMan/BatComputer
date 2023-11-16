@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Abstractions.Widgets;
 
 namespace BatComputer.Plugins.Weather.Widgets;
 

@@ -1,4 +1,5 @@
 ﻿using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Commands;
 
 namespace MattEland.BatComputer.ConsoleApp.Menus;

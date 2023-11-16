@@ -9,7 +9,7 @@ namespace MattEland.BatComputer.ConsoleApp;
 
 public static class SettingsLoader
 {
-    public static KernelSettings Load(this KernelSettings _settings, ConsoleSkin skin)
+    public static KernelSettings Load(this KernelSettings settings, ConsoleSkin skin)
     {
         // Load settings
         IConfigurationRoot config = new ConfigurationBuilder()
@@ -19,43 +19,36 @@ public static class SettingsLoader
             .AddCommandLine(Environment.GetCommandLineArgs())
             .Build();
 
-        AnsiConsole.MarkupLine($"[{skin.NormalStyle}]Reading configuration data[/]");
-        ReadRequiredSetting(config, skin, "AzureAIEndpoint", v => _settings.AzureAiServicesEndpoint = v);
-        ReadRequiredSetting(config, skin, "AzureAIKey", v => _settings.AzureAiServicesKey = v);
-        ReadRequiredSetting(config, skin, "AzureOpenAIEndpoint", v => _settings.AzureOpenAiEndpoint = v);
-        ReadRequiredSetting(config, skin, "AzureOpenAIKey", v => _settings.AzureOpenAiKey = v);
-        ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => _settings.OpenAiDeploymentName = v);
-        ReadOptionalSetting(config, skin, "BingKey", v => _settings.BingKey = v);
-
+        AnsiConsole.MarkupLine($"[{skin.NormalStyle}]Loading configuration[/]");
+        ReadRequiredSetting(config, skin, "AzureAIEndpoint", v => settings.AzureAiServicesEndpoint = v);
+        ReadRequiredSetting(config, skin, "AzureAIKey", v => settings.AzureAiServicesKey = v);
+        ReadRequiredSetting(config, skin, "AzureOpenAIEndpoint", v => settings.AzureOpenAiEndpoint = v);
+        ReadRequiredSetting(config, skin, "AzureOpenAIKey", v => settings.AzureOpenAiKey = v);
+        ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => settings.OpenAiDeploymentName = v);
+        ReadOptionalSetting(config, skin, "BingKey", v => settings.BingKey = v);
         AnsiConsole.WriteLine();
 
-        return _settings;
+        return settings;
     }
 
     private static void ReadRequiredSetting(IConfiguration config, ConsoleSkin skin, string settingName, Action<string> applyAction)
     {
         string? value = config[settingName];
-        if (string.IsNullOrEmpty(value))
+        if (!string.IsNullOrEmpty(value))
         {
-            AnsiConsole.MarkupLine($"[{skin.ErrorStyle}]{skin.ErrorEmoji} Could not read the config value for {settingName}[/]");
+            applyAction(value);
         }
         else
         {
-            applyAction(value);
-            AnsiConsole.MarkupLine($"[{skin.SuccessStyle}]{skin.SuccessEmoji} Read setting {settingName}[/]");
+            AnsiConsole.MarkupLine($"[{skin.ErrorStyle}]{skin.ErrorEmoji} Could not read the config value for {settingName}[/]");
         }
     }
     private static void ReadOptionalSetting(IConfiguration config, ConsoleSkin skin, string settingName, Action<string> applyAction)
     {
         string? value = config[settingName];
-        if (string.IsNullOrEmpty(value))
-        {
-            AnsiConsole.MarkupLine($"[{skin.WarningStyle}]{skin.WarningEmoji} Could not read the config value for {settingName}[/]");
-        }
-        else
+        if (!string.IsNullOrEmpty(value))
         {
             applyAction(value);
-            AnsiConsole.MarkupLine($"[{skin.SuccessStyle}]{skin.SuccessEmoji} Read setting {settingName}[/]");
         }
     }
 }

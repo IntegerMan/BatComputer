@@ -4,6 +4,7 @@ using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
+// ReSharper disable once UnusedMember.Global - Used via Reflection
 public class LatLongWidgetRenderer : WidgetRenderer<LatLongWidget>
 {
     public override void Render(LatLongWidget widget, ConsoleSkin skin)

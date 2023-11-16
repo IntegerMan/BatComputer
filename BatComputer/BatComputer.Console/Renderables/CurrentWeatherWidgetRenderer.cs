@@ -4,6 +4,7 @@ using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
+// ReSharper disable once UnusedMember.Global - Used via Reflection
 public class CurrentWeatherWidgetRenderer : WidgetRenderer<CurrentWeatherWidget>
 {
     public override void Render(CurrentWeatherWidget widget, ConsoleSkin skin)

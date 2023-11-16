@@ -1,4 +1,4 @@
-﻿namespace MattEland.BatComputer.Abstractions;
+﻿namespace MattEland.BatComputer.Abstractions.Widgets;
 
 public interface IWidget
 {

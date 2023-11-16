@@ -8,6 +8,7 @@ using Microsoft.SemanticKernel.AI.TextCompletion;
 using LLama.Common;
 using LLama;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Abstractions.Widgets;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.Diagnostics;

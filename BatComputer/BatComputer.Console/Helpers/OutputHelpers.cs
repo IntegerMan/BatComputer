@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Json;
 using System.Reflection;
+using MattEland.BatComputer.Abstractions.Widgets;
 
 namespace MattEland.BatComputer.ConsoleApp.Helpers;
 
