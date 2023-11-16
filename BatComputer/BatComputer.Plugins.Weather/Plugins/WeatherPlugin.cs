@@ -34,8 +34,9 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         StringBuilder sb = new();
 
-        CurrentWeatherWidget widget = new(!string.IsNullOrWhiteSpace(locationDescription) ? $"{locationDescription} Weather" : "Current Weather")
+        CurrentWeatherWidget widget = new()
         {
+            Title = !string.IsNullOrWhiteSpace(locationDescription) ? $"{locationDescription} Weather" : "Current Weather",
             Temperature = $"{current.Temperature}\u00b0F",
             CloudCover = $"{current.CloudCoverPercent:P0}",
             IsDay = current.IsDay,

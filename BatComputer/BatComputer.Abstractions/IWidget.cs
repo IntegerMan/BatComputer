@@ -2,7 +2,6 @@
 
 public interface IWidget
 {
-    void SetTitle(string? title);
-    string? GetTitle();
+    string Title { get; }
     void UseSampleData();
 }

@@ -2,17 +2,9 @@
 
 public abstract class WidgetBase : IWidget
 {
-    private string? _title;
-
-    protected WidgetBase(string? title = null)
-    {
-        _title = title ?? GetType().Name;
-    }
-
-    public void SetTitle(string? title) => _title = title;
-
-    public string? GetTitle() => _title;
     public abstract void UseSampleData();
 
-    public override string ToString() => _title ?? GetType().Name;
+    public required string Title { get; set;  }
+
+    public override string ToString() => Title ?? GetType().Name;
 }

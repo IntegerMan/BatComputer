@@ -5,16 +5,6 @@ namespace BatComputer.Plugins.Weather.Widgets;
 
 public class CurrentWeatherWidget : WidgetBase
 {
-    public CurrentWeatherWidget() : this("Current Weather")
-    {
-
-    }
-
-    public CurrentWeatherWidget(string title) : base(title)
-    {
-
-    }
-
     public string? Conditions { get; set; } = "Not detected";
     public required string Temperature { get; set; }
     [Description("Cloud Cover")]
@@ -26,7 +16,7 @@ public class CurrentWeatherWidget : WidgetBase
 
     public override void UseSampleData()
     {
-        SetTitle("Widgetville Weather");
+        Title = "Widgetville Weather";
         IsDay = true;
         Snowfall = "3.5 inches";
         Rainfall = "0.0 inches";
