@@ -6,9 +6,9 @@ public class TokenUsageWidget : WidgetBase
     {
     }
 
-    public TokenUsageWidget(int promptTokens, int completionTokens)
+    public TokenUsageWidget(int promptTokens, int completionTokens, string title = "")
     {
-        Title = $"{promptTokens + completionTokens} Tokens Used";
+        Title = $"{title}: {promptTokens + completionTokens} Tokens Used".TrimStart();
         PromptTokens = promptTokens;
         CompletionTokens = completionTokens;
     }
@@ -19,7 +19,7 @@ public class TokenUsageWidget : WidgetBase
 
     public override void UseSampleData()
     {
-        Title = "260 Tokens Used";
+        Title = "Plan: 260 Tokens Used";
         PromptTokens = 200;
         CompletionTokens = 60;
     }

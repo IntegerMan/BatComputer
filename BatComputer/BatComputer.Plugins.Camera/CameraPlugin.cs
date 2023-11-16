@@ -6,9 +6,6 @@ using Microsoft.SemanticKernel;
 
 namespace MattEland.BatComputer.Plugins.Camera;
 
-
-
-
 public class CameraPlugin
 {
     private readonly IAppKernel _kernel;
@@ -17,7 +14,7 @@ public class CameraPlugin
     {
         _kernel = kernel;
     }
-
+    
     [SKFunction, Description("Gets an image from the user's camera, saves it to disk, and returns the path of that image")]
     public async Task<string> GetImageAsync()
     {

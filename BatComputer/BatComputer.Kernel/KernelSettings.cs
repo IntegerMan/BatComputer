@@ -48,6 +48,7 @@ public class KernelSettings {
     }
 
     public bool IsValid => !Validate(new ValidationContext(this)).Any();
-    public bool SupportsSearch => false;
+    public bool SupportsSearch => !string.IsNullOrWhiteSpace(BingKey);
+    public bool SupportsAiServices => !string.IsNullOrWhiteSpace(AzureAiServicesEndpoint) && !string.IsNullOrWhiteSpace(AzureAiServicesKey);
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

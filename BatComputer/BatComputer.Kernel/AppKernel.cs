@@ -1,4 +1,5 @@
 ﻿using Azure.AI.OpenAI;
+using BatComputer.Plugins.Vision;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -19,7 +20,6 @@ namespace MattEland.BatComputer.Kernel;
 
 public class AppKernel : IAppKernel
 {
-    private readonly KernelSettings _settings;
     public IKernel Kernel { get; }
     public SequentialPlanner? Planner { get; }
     private readonly SequentialPlannerConfig _plannerConfig;
@@ -29,7 +29,6 @@ public class AppKernel : IAppKernel
 
     public AppKernel(KernelSettings settings)
     {
-        _settings = settings;
         KernelBuilder builder = new();
         builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
 
@@ -45,12 +44,17 @@ public class AppKernel : IAppKernel
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new CameraPlugin(this), "Vision");
-        Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
+        Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
-        if (!string.IsNullOrWhiteSpace(_settings.BingKey))
+        if (settings.SupportsAiServices)
         {
-            WebSearchConnector = new BingConnector(_settings.BingKey);
+            Kernel.ImportFunctions(new VisionPlugin(this, settings.AzureAiServicesEndpoint, settings.AzureAiServicesKey));
+        }
+
+        if (settings.SupportsSearch)
+        {
+            WebSearchConnector = new BingConnector(settings.BingKey);
             Kernel.ImportFunctions(new WebSearchEnginePlugin(WebSearchConnector), "Search");
         }
 
@@ -77,11 +81,15 @@ public class AppKernel : IAppKernel
 
         if (usage is {TotalTokens: > 0})
         {
-            AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens));
+            string stepName = e.FunctionView.PluginName.Contains("Planner", StringComparison.OrdinalIgnoreCase)
+                ? "Planning" 
+                : e.FunctionView.Name;
+
+            AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens, $"{stepName} Token Usage"));
         }
     }
 
-    public BingConnector WebSearchConnector { get; }
+    public BingConnector? WebSearchConnector { get; }
 
     public bool IsFunctionExcluded(FunctionView f) 
         => f.PluginName == "SequentialPlanner_Excluded" ||
@@ -110,7 +118,7 @@ public class AppKernel : IAppKernel
         LastMessage = null;
         Widgets.Clear();
 
-        LastGoal = $"The goal of the plan is to answer the prompt: {userText} in the voice of Alfred addressing the user, Batman. Do not use .output in your plans and do not include any step that has no output.";
+        LastGoal = $"The goal of the plan is to answer the prompt: {userText} in the voice of Alfred addressing the user, Batman. Every step should have one output variable. When passing variables as parameters, pass them as $VARIABLE_NAME and not $VARIABLE_NAME.output";
         Plan plan = await Planner!.CreatePlanAsync(LastGoal);
 
         LastPlan = plan;
