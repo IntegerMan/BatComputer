@@ -1,5 +1,5 @@
-﻿using BatComputer.Plugins.Weather.Widgets;
-using MattEland.BatComputer.ConsoleApp.Abstractions;
+﻿using MattEland.BatComputer.ConsoleApp.Abstractions;
+using MattEland.BatComputer.Plugins.Weather.Widgets;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;

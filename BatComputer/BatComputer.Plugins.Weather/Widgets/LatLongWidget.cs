@@ -1,7 +1,6 @@
-﻿using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.Abstractions.Widgets;
+﻿using MattEland.BatComputer.Abstractions.Widgets;
 
-namespace BatComputer.Plugins.Weather.Widgets;
+namespace MattEland.BatComputer.Plugins.Weather.Widgets;
 
 public class LatLongWidget : WidgetBase
 {

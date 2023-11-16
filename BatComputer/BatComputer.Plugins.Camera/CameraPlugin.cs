@@ -4,7 +4,7 @@ using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 using Microsoft.SemanticKernel;
 
-namespace BatComputer.Plugins.Vision;
+namespace MattEland.BatComputer.Plugins.Camera;
 
 
 
@@ -21,14 +21,22 @@ public class CameraPlugin
     [SKFunction, Description("Gets an image from the user's camera, saves it to disk, and returns the path of that image")]
     public async Task<string> GetImageAsync()
     {
-        // Take only one image, given the image characteristics:
+        // Find a suitable camera
         CaptureDevices devices = new();
-        CaptureDeviceDescriptor camera = devices.EnumerateDescriptors().ElementAt(0);
+        List<CaptureDeviceDescriptor> cameras = devices.EnumerateDescriptors().ToList();
+        CaptureDeviceDescriptor? camera = cameras.FirstOrDefault(c => string.Equals(c.Name, "Default", StringComparison.OrdinalIgnoreCase));
+        camera ??= cameras.FirstOrDefault();
+        if (camera == null)
+        {
+            throw new InvalidOperationException("No camera was detected");
+        }
 
+        // Take the image frame
         byte[] imageData = await camera.TakeOneShotAsync(camera.Characteristics[0]);
 
         // Save to file
-        string fileName = Path.GetTempFileName();
+        string tempPath = Path.GetTempPath();
+        string fileName = Path.Combine(tempPath, Path.ChangeExtension(Path.GetRandomFileName(), ".png"));
         await File.WriteAllBytesAsync(fileName, imageData);
 
         // Register and return it

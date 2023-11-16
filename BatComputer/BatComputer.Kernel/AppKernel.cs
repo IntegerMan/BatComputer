@@ -1,12 +1,12 @@
 ﻿using Azure.AI.OpenAI;
-using BatComputer.Plugins.Vision;
-using BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
+using MattEland.BatComputer.Plugins.Camera;
+using MattEland.BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.Diagnostics;

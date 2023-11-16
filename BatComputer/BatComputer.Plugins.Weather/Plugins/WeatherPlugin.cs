@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Text;
-using BatComputer.Plugins.Weather.Models;
-using BatComputer.Plugins.Weather.Widgets;
 using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Plugins.Weather.Models;
+using MattEland.BatComputer.Plugins.Weather.Widgets;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 
-namespace BatComputer.Plugins.Weather.Plugins;
+namespace MattEland.BatComputer.Plugins.Weather.Plugins;
 
 public class WeatherPlugin : OpenMeteoPlugin
 {

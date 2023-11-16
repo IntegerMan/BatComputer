@@ -1,6 +1,6 @@
 ﻿using MattEland.BatComputer.Abstractions;
 
-namespace BatComputer.Plugins.Weather.Plugins;
+namespace MattEland.BatComputer.Plugins.Weather.Plugins;
 
 public abstract class OpenMeteoPlugin
 {

@@ -1,4 +1,4 @@
-﻿namespace BatComputer.Plugins.Weather.Models;
+﻿namespace MattEland.BatComputer.Plugins.Weather.Models;
 
 public class WeatherResponse
 {

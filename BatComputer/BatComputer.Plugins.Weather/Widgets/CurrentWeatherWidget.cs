@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using MattEland.BatComputer.Abstractions.Widgets;
 
-namespace BatComputer.Plugins.Weather.Widgets;
+namespace MattEland.BatComputer.Plugins.Weather.Widgets;
 
 public class CurrentWeatherWidget : WidgetBase
 {

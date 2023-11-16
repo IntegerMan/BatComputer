@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MattEland.BatComputer.Abstractions.Widgets;
+﻿namespace MattEland.BatComputer.Abstractions.Widgets;
 
 public class ImageFileWidget : WidgetBase
 {
@@ -22,7 +16,7 @@ public class ImageFileWidget : WidgetBase
 
     public override void UseSampleData()
     {
+        Path = System.IO.Path.Combine(Environment.CurrentDirectory, "TestImage.jpeg");
         Title = "TestImage.jpeg";
-        Path = "TestImage.jpeg";
     }
 }
