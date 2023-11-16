@@ -81,9 +81,9 @@ public class AppKernel : IAppKernel
 
         if (usage is {TotalTokens: > 0})
         {
-            string stepName = e.FunctionView.PluginName.Contains("Planner", StringComparison.OrdinalIgnoreCase)
-                ? "Planning" 
-                : e.FunctionView.Name;
+            string stepName = e.FunctionView.Name.StartsWith("func", StringComparison.OrdinalIgnoreCase)
+                    ? e.FunctionView.PluginName 
+                    : e.FunctionView.Name;
 
             AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens, $"{stepName} Token Usage"));
         }

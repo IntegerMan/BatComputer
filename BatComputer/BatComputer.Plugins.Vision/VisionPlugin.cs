@@ -35,7 +35,7 @@ public class VisionPlugin
 
             ImageAnalysisOptions analysisOptions = new()
             {
-                Features = ImageAnalysisFeature.Caption | ImageAnalysisFeature.DenseCaptions | ImageAnalysisFeature.Text
+                Features = ImageAnalysisFeature.Caption | ImageAnalysisFeature.Objects | ImageAnalysisFeature.Text
             };
 
             using ImageAnalyzer analyzer = new(_visionOptions, source, analysisOptions);
@@ -51,20 +51,20 @@ public class VisionPlugin
                 case ImageAnalysisResultReason.Analyzed:
                     StringBuilder sb = new();
 
-                    sb.AppendLine("Image analysis caption: " + result.Caption.Content);
-
-                    foreach (string denseCap in result.DenseCaptions.Select(dc => dc.Content).Distinct())
+                    sb.AppendLine($"Analyzed an image described as: {result.Caption.Content}.");
+                    if (result.Objects != null && result.Objects.Any())
                     {
-                        sb.AppendLine("Additional Caption in image: " + denseCap);
+                        sb.AppendLine($"In this image the following objects were detected: {string.Join(", ", result.Objects.Select(o => o.Name))}.");
                     }
 
-                    if (result.Text.Lines.Any())
+                    if (result.DenseCaptions != null && result.DenseCaptions.Any())
                     {
-                        sb.AppendLine("Lines of text in image:");
-                        foreach (DetectedTextLine line in result.Text.Lines)
-                        {
-                            sb.AppendLine(line.Content);
-                        }
+                        sb.AppendLine($"Additional descriptions: {string.Join(", ", result.DenseCaptions.Select(dc => dc.Content).Distinct())}.");
+                    }
+
+                    if (result.Text != null && result.Text.Lines.Any())
+                    {
+                        sb.AppendLine($"Text in the image: {string.Join(' ', result.Text.Lines.Select(l => l.Content))}.");
                     }
 
                     return sb.ToString();
