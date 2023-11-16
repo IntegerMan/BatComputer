@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FlashCap" Version="1.8.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

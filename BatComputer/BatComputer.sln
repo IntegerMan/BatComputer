@@ -7,11 +7,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Console", "BatC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Kernel", "BatComputer.Kernel\BatComputer.Kernel.csproj", "{D1884DC5-3E0A-4B66-B5C3-F80AD8390EEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Weather", "BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj", "{AB666C01-7534-4B62-BC7A-B0751388F00B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Weather", "BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj", "{AB666C01-7534-4B62-BC7A-B0751388F00B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Abstractions", "BatComputer.Abstractions\BatComputer.Abstractions.csproj", "{E9E51E20-008A-411C-9DEE-E136E35A2297}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Abstractions", "BatComputer.Abstractions\BatComputer.Abstractions.csproj", "{E9E51E20-008A-411C-9DEE-E136E35A2297}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Skins", "BatComputer.Skins\BatComputer.Skins.csproj", "{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Skins", "BatComputer.Skins\BatComputer.Skins.csproj", "{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}"
 EndProject
@@ -19,7 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Console", "Console", "{42B0
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{881F8628-F0BD-4D31-AD39-7378039B402B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.ConsoleApp.Abstractions", "BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj", "{D571BB84-7BBD-4735-8642-9135FF7082EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.ConsoleApp.Abstractions", "BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj", "{D571BB84-7BBD-4735-8642-9135FF7082EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Vision", "BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj", "{4BA4AB9B-194B-4B9B-953A-85FB26639AF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{D571BB84-7BBD-4735-8642-9135FF7082EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D571BB84-7BBD-4735-8642-9135FF7082EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D571BB84-7BBD-4735-8642-9135FF7082EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BA4AB9B-194B-4B9B-953A-85FB26639AF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BA4AB9B-194B-4B9B-953A-85FB26639AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BA4AB9B-194B-4B9B-953A-85FB26639AF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BA4AB9B-194B-4B9B-953A-85FB26639AF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{E9E51E20-008A-411C-9DEE-E136E35A2297} = {881F8628-F0BD-4D31-AD39-7378039B402B}
 		{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3} = {42B01B8B-DA2E-4EC7-9B9B-E056644E1ED6}
 		{D571BB84-7BBD-4735-8642-9135FF7082EA} = {42B01B8B-DA2E-4EC7-9B9B-E056644E1ED6}
+		{4BA4AB9B-194B-4B9B-953A-85FB26639AF8} = {3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0DA24201-4EA1-4CB4-9651-A6D872FAB756}

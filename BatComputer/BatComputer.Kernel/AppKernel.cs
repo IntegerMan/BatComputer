@@ -1,4 +1,5 @@
 ﻿using Azure.AI.OpenAI;
+using BatComputer.Plugins.Vision;
 using BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
@@ -43,6 +44,7 @@ public class AppKernel : IAppKernel
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
+        Kernel.ImportFunctions(new CameraPlugin(this), "Vision");
         Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
 
@@ -75,7 +77,7 @@ public class AppKernel : IAppKernel
 
         if (usage is {TotalTokens: > 0})
         {
-            Widgets.Enqueue(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens));
+            AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens));
         }
     }
 
