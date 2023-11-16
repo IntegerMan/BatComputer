@@ -13,10 +13,10 @@ public class DiagnosticsMenu : MenuBase
     {
         get
         {
+            yield return new ConsoleDiagnosticsCommand(App);
             yield return new ListPluginsCommand(App);
             yield return new ShowPlanTreeCommand(App);
             yield return new ShowPlanJsonCommand(App);
-
             yield return new DisplayAllWidgetsCommand(App);
 
             // Add Diagnostics for each IWidget 
