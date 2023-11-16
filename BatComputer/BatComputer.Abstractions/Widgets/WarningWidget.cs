@@ -2,10 +2,12 @@
 
 public class WarningWidget : WidgetBase
 {
-    public WarningWidget(string message)
+    public WarningWidget() : this("Warning", "Uh, oh")
     {
-        this.Title = "Warning";
-        this.Message = message;
+    }
+
+    public WarningWidget(string message) : this("Warning", message)
+    {
     }
 
     public WarningWidget(string title, string message)

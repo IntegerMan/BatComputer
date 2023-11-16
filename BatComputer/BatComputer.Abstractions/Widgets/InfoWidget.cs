@@ -2,10 +2,13 @@
 
 public class InfoWidget : WidgetBase
 {
-    public InfoWidget(string message)
+    public InfoWidget() : this("Info", "Sample Message")
     {
-        this.Title = "Info";
-        this.Message = message;
+
+    }
+
+    public InfoWidget(string message) : this("Info", message)
+    {
     }
 
     public InfoWidget(string title, string message)

@@ -58,11 +58,9 @@ public static class OutputHelpers
 
     public static void RenderImage(string path, int? maxWidth = 20)
     {
-        // Load an image
-        CanvasImage image = new(path)
-        {
-            MaxWidth = maxWidth,
-        };
+        CanvasImage image = new(path);
+        image.MaxWidth = maxWidth;
+
         AnsiConsole.Write(image);
     }
 

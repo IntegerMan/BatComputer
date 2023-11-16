@@ -18,6 +18,7 @@ public abstract class ConsoleSkin {
     public virtual string WarningEmoji => ":yellow_circle:";
     public virtual string SuccessStyle => "Green";
     public virtual string SuccessEmoji => ":check_mark_button:";
+    public virtual Color AgentColor => Color.Cyan1;
     public virtual string AgentStyle => "Cyan";
     public virtual string DebugStyle => "grey69";
     public virtual string AgentName => "Bot";
@@ -25,4 +26,5 @@ public abstract class ConsoleSkin {
     public string AppNameWithPrefix => string.IsNullOrWhiteSpace(AppNamePrefix) 
             ? AppName 
             : $"{AppNamePrefix} {AppName}";
+
 }

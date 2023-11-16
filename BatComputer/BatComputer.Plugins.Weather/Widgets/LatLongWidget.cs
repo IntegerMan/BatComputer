@@ -5,8 +5,8 @@ namespace BatComputer.Plugins.Weather.Widgets;
 
 public class LatLongWidget : WidgetBase
 {
-    public required decimal Latitude { get; set; }
-    public required decimal Longitude { get; set; }
+    public decimal Latitude { get; set; }
+    public decimal Longitude { get; set; }
 
     public override void UseSampleData()
     {

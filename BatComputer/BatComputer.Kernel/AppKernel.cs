@@ -1,19 +1,18 @@
-﻿using BatComputer.Plugins.Weather.Plugins;
+﻿using Azure.AI.OpenAI;
+using BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
-using LLamaSharp.SemanticKernel.TextCompletion;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-using LLama.Common;
-using LLama;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.SemanticKernel.Events;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -31,66 +30,17 @@ public class AppKernel : IAppKernel
     {
         _settings = settings;
         KernelBuilder builder = new();
-        Kernel = BuildKernel(settings, builder);
+        builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
+
+        Kernel = builder.Build();
+
+        Kernel.FunctionInvoking += OnFunctionInvoking;
+        Kernel.FunctionInvoked += OnFunctionInvoked;
 
         _chat = new ChatPlugin(this);
-
-        ImportFunctions();
-
-        _plannerConfig = new SequentialPlannerConfig();
-        _plannerConfig.AllowMissingFunctions = false;
-        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
-
-        Planner = new SequentialPlanner(Kernel, _plannerConfig);
-    }
-
-    private static IKernel BuildKernel(KernelSettings settings, KernelBuilder builder)
-    {
-        bool useLlama = false;
-
-        if (useLlama)
-        {
-            var parameters = new ModelParams(@"C:\Models\thespis-13b-v0.5.Q2_K.gguf");
-            _model = LLamaWeights.LoadFromFile(parameters);
-            //var ex = new StatelessExecutor(model, parameters);
-
-            _context = _model.CreateContext(parameters);
-            // LLamaSharpChatCompletion requires InteractiveExecutor, as it's the best fit for the given command.
-            //InteractiveExecutor chatEx = new(_context);
-            StatelessExecutor stateEx = new(_model, parameters);
-
-            builder.WithAIService<ITextCompletion>("local-llama", new LLamaSharpTextCompletion(stateEx), true);
-            //builder.WithAIService<IChatCompletion>("local-llama-chat", new LLamaSharpChatCompletion(chatEx), setAsDefault: true);
-        }
-        else
-        {
-            /*
-.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName,
-                                      settings.AzureOpenAiEndpoint,
-                                      settings.AzureOpenAiKey,
-                                      setAsDefault: true)
-*/
-            // TODO: Allow specifying text vs chat models
-            builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
-        }
-
-        return builder
-
-            // TODO: Add ImageGen Service
-            // TODO: Add Embeddings
-            // TODO: Add Retry & Polly
-            .Build();
-    }
-
-    private void ImportFunctions()
-    {
         Kernel.ImportFunctions(_chat, "Chat");
+
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
-        //Kernel.ImportFunctions(new MathPlugin(), "Math");
-        //Kernel.ImportFunctions(new TextPlugin(), "Strings");
-        //Kernel.ImportFunctions(new HttpPlugin(), "HTTP");
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(_settings, this), "User");
@@ -102,13 +52,34 @@ public class AppKernel : IAppKernel
             Kernel.ImportFunctions(new WebSearchEnginePlugin(WebSearchConnector), "Search");
         }
 
-        // TODO: Add a memory plugin
+        _plannerConfig = new SequentialPlannerConfig();
+        _plannerConfig.AllowMissingFunctions = false;
+        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
+        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
+
+        Planner = new SequentialPlanner(Kernel, _plannerConfig);
     }
 
-    public BingConnector WebSearchConnector { get; private set; }
+    private void OnFunctionInvoking(object? sender, FunctionInvokingEventArgs e)
+    {
+        
+    }
 
-    private static LLamaWeights _model;
-    private static LLamaContext _context;
+    private void OnFunctionInvoked(object? sender, FunctionInvokedEventArgs e)
+    {
+        if (!e.Metadata.TryGetValue("ModelResults", out object? value)) return;
+
+        IReadOnlyCollection<ModelResult>? modelResults = value as IReadOnlyCollection<ModelResult>;
+        CompletionsUsage? usage = modelResults?.First().GetOpenAIChatResult().Usage;
+
+        if (usage is {TotalTokens: > 0})
+        {
+            Widgets.Enqueue(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens));
+        }
+    }
+
+    public BingConnector WebSearchConnector { get; }
 
     public bool IsFunctionExcluded(FunctionView f) 
         => f.PluginName == "SequentialPlanner_Excluded" ||

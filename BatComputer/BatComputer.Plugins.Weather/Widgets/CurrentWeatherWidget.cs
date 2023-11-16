@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 
 namespace BatComputer.Plugins.Weather.Widgets;
@@ -7,13 +6,12 @@ namespace BatComputer.Plugins.Weather.Widgets;
 public class CurrentWeatherWidget : WidgetBase
 {
     public string? Conditions { get; set; } = "Not detected";
-    public required string Temperature { get; set; }
-    [Description("Cloud Cover")]
-    public required string CloudCover { get; set; }
+    public string Temperature { get; set; } = "0\u00b0F";
+    [Description("Cloud Cover")] public string CloudCover { get; set; } = "0%";
 
     public bool IsDay { get; set; }
-    public required string Rainfall { get; set; }
-    public required string Snowfall { get; set; }
+    public string Rainfall { get; set; } = "0.0 inches";
+    public string Snowfall { get; set; } = "0.0 inches";
 
     public override void UseSampleData()
     {

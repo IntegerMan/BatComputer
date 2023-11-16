@@ -13,6 +13,7 @@ public sealed class BatComputerSkin : ConsoleSkin {
 
     public override string SuccessStyle => "gold1";
     public override string AgentStyle => "skyblue3";
+    public override Color AgentColor => Color.SkyBlue3;
 
     public override string AgentName => "Alfred";
 
