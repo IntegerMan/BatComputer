@@ -56,7 +56,17 @@ public static class OutputHelpers
         RenderDump(widget);
     }
 
-    private static void RenderDump(IWidget widget)
+    public static void RenderImage(string path, int? maxWidth = 20)
+    {
+        // Load an image
+        CanvasImage image = new(path)
+        {
+            MaxWidth = maxWidth,
+        };
+        AnsiConsole.Write(image);
+    }
+
+    public static void RenderDump(IWidget widget)
     {
         widget.Dump(label: widget.ToString(),
             typeNames: new TypeNamingConfig { ShowTypeNames = false },

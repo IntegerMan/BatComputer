@@ -9,13 +9,13 @@ public class WarningWidgetRenderer : WidgetRenderer<WarningWidget>
 {
     public override void Render(WarningWidget widget, ConsoleSkin skin)
     {
-        Table table = new Table().AddColumns($"[{skin.WarningStyle}]{Markup.Escape(widget.Title)}[/]")
-            .Centered()
-            .Border(TableBorder.HeavyEdge)
+        Panel box = new Panel($"[{skin.NormalStyle}]{Markup.Escape(widget.Message)}[/]")
+            .Border(BoxBorder.Heavy)
             .BorderStyle(skin.WarningStyle)
-            .AddRow($"[{skin.NormalStyle}]{Markup.Escape(widget.Message)}[/]");
+            .Padding(2, 1)
+            .Header($"[{skin.ErrorStyle}] {Markup.Escape(widget.Title.ToUpper())} [/]", Justify.Center);
 
-        AnsiConsole.Write(table);
+        AnsiConsole.Write(box);
         AnsiConsole.WriteLine();
     }
 }

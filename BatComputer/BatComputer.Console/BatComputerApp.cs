@@ -1,5 +1,3 @@
-using System.Reflection;
-using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
@@ -32,14 +30,18 @@ public class BatComputerApp
 
         // Load plugins and display loaded plugins
         AppKernel appKernel = new(_settings);
-        appKernel.RenderKernelPluginsChart(Skin);
 
         // Warn the user that actual costs may be incurred from using the app
         new InfoWidget("Disclaimer","This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
         if (AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
         {
-            // Primary loop
+            // Show plugins now that they're paying attention
             AnsiConsole.WriteLine();
+            appKernel.RenderKernelPluginsChart(Skin);
+            AnsiConsole.WriteLine();
+
+            // Primary loop
+            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]System Ready[/]");
             Menus.Push(new RootMenu(this));
             await RunMainLoopAsync(appKernel);
         }
@@ -54,6 +56,8 @@ public class BatComputerApp
 
     private async Task RunMainLoopAsync(AppKernel appKernel)
     {
+        AnsiConsole.WriteLine();
+
         while (Menus.TryPeek(out MenuBase? activeMenu))
         {
             SelectionPrompt<AppCommand> choices = new SelectionPrompt<AppCommand>()

@@ -9,13 +9,11 @@ public class InfoWidgetRenderer : WidgetRenderer<InfoWidget>
 {
     public override void Render(InfoWidget widget, ConsoleSkin skin)
     {
-        Table table = new Table().AddColumns($"[{skin.NormalStyle}]{Markup.Escape(widget.Title)}[/]")
-            .Centered()
-            .Border(TableBorder.Rounded)
+        Panel box = new Panel($"[{skin.DebugStyle}]{Markup.Escape(widget.Message)}[/]")
             .BorderStyle(skin.AccentStyle)
-            .AddRow($"[{skin.DebugStyle}]{Markup.Escape(widget.Message)}[/]");
+            .Header($"[{skin.NormalStyle}]{Markup.Escape(widget.Title)}[/]", Justify.Left);
 
-        AnsiConsole.Write(table);
+        AnsiConsole.Write(box);
         AnsiConsole.WriteLine();
     }
 }
