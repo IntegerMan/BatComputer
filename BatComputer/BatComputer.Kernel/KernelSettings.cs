@@ -8,15 +8,13 @@ namespace MattEland.BatComputer.Kernel;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 public class KernelSettings {
-    [Required]
     public string AzureAiServicesEndpoint { get; set; }
-    [Required]
     public string AzureAiServicesKey { get; set; }
-    [Required]
+    public string AzureAiServicesRegion { get; set; }
+
     public string AzureOpenAiEndpoint { get; set; }
-    [Required]
     public string AzureOpenAiKey { get; set; }
-    [Required]
+
     public string OpenAiDeploymentName { get; set; }
 
     /// <summary>
@@ -26,6 +24,7 @@ public class KernelSettings {
     /// For https://sessionize.com/api/v2/abcd/view/SpeakerWall the token would be abcd
     /// </example>
     public string? SessionizeToken { get; set; }
+    public string SpeechVoiceName { get; set; } = "en-GB-AlfieNeural";
 
     public string? BingKey { get; set; }
 
@@ -57,7 +56,7 @@ public class KernelSettings {
 
     public bool IsValid => !Validate(new ValidationContext(this)).Any();
     public bool SupportsSearch => !string.IsNullOrWhiteSpace(BingKey);
-    public bool SupportsAiServices => !string.IsNullOrWhiteSpace(AzureAiServicesEndpoint) && !string.IsNullOrWhiteSpace(AzureAiServicesKey);
+    public bool SupportsAiServices => !string.IsNullOrWhiteSpace(AzureAiServicesEndpoint) && !string.IsNullOrWhiteSpace(AzureAiServicesKey) && !string.IsNullOrWhiteSpace(AzureAiServicesRegion);
     public bool SupportsSessionize => !string.IsNullOrWhiteSpace(SessionizeToken);
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

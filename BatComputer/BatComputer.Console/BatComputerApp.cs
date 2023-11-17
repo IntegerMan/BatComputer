@@ -1,3 +1,4 @@
+using BatComputer.Speech;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
@@ -13,6 +14,7 @@ namespace MattEland.BatComputer.ConsoleApp;
 public class BatComputerApp
 {
     private readonly KernelSettings _settings = new();
+    private SpeechProvider? _speech;
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
 
     public async Task<int> RunAsync()
@@ -28,6 +30,11 @@ public class BatComputerApp
             new WarningWidget("No Bing Search Key Supplied. Web Search will be disabled.").Render(Skin);
         }
 
+        if (_settings.SupportsAiServices)
+        {
+            _speech = new SpeechProvider(_settings.AzureAiServicesRegion, _settings.AzureAiServicesKey, _settings.SpeechVoiceName);
+        }
+
         // Load plugins and display loaded plugins
         AppKernel appKernel = new(_settings);
 
@@ -35,6 +42,8 @@ public class BatComputerApp
         new InfoWidget("Disclaimer","This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
         if (AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
         {
+            _ = _speech?.SpeakAsync($"Welcome to {Skin.AppNameWithPrefix}");
+
             // Show plugins now that they're paying attention
             AnsiConsole.WriteLine();
             appKernel.RenderKernelPluginsChart(Skin);
@@ -70,5 +79,10 @@ public class BatComputerApp
 
             await choice.ExecuteAsync( appKernel);
         }
+    }
+
+    public Task SpeakAsync(string message)
+    {
+        return _speech?.SpeakAsync(message) ?? Task.CompletedTask;
     }
 }

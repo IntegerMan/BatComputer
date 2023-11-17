@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Vision"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Sessionize", "BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj", "{C81F9126-82F8-4141-AA09-6F7E619A4A80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Speech", "BatComputer.Speech\BatComputer.Speech.csproj", "{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{C81F9126-82F8-4141-AA09-6F7E619A4A80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C81F9126-82F8-4141-AA09-6F7E619A4A80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C81F9126-82F8-4141-AA09-6F7E619A4A80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +89,7 @@ Global
 		{0EF937A8-8AAB-4C60-A22F-2D94B31007E9} = {3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}
 		{F82EE726-570A-4278-A208-7019BC8BEA47} = {3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}
 		{C81F9126-82F8-4141-AA09-6F7E619A4A80} = {3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}
+		{2E32CFF4-A703-4252-A75B-DFDAC4DC3306} = {881F8628-F0BD-4D31-AD39-7378039B402B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0DA24201-4EA1-4CB4-9651-A6D872FAB756}

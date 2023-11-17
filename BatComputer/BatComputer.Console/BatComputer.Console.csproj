@@ -44,6 +44,7 @@
     <ProjectReference Include="..\BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj" />
     <ProjectReference Include="..\BatComputer.Kernel\BatComputer.Kernel.csproj" />
     <ProjectReference Include="..\BatComputer.Skins\BatComputer.Skins.csproj" />
+    <ProjectReference Include="..\BatComputer.Speech\BatComputer.Speech.csproj" />
   </ItemGroup>
 
   <ItemGroup>

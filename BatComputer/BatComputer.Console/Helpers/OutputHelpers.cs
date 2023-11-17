@@ -27,6 +27,7 @@ public static class OutputHelpers
         }
 
         AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
+        app.SpeakAsync(chatResponse);
         AnsiConsole.WriteLine();
     }
 
