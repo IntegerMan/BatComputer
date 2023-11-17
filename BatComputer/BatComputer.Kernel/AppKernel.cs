@@ -44,13 +44,13 @@ public class AppKernel : IAppKernel
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
-        Kernel.ImportFunctions(new CameraPlugin(this), "Vision");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
+        Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
 
         if (settings.SupportsAiServices)
         {
-            Kernel.ImportFunctions(new VisionPlugin(this, settings.AzureAiServicesEndpoint, settings.AzureAiServicesKey));
+            Kernel.ImportFunctions(new VisionPlugin(this, settings.AzureAiServicesEndpoint, settings.AzureAiServicesKey), "Vision");
         }
 
         if (settings.SupportsSearch)

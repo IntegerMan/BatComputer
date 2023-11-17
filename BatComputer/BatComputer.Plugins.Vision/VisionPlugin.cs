@@ -20,8 +20,7 @@ public class VisionPlugin
         _visionOptions = new VisionServiceOptions(endpoint, credentials);
     }
 
-    [SKFunction,
-     Description("Analyzes an image from its path on disk and returns a list of detected object representing what's in the image. The resulting string will need to be summarized.")]
+    [SKFunction, Description("Analyzes an image from its path on disk and returns a list of detected object representing what's in the image. The resulting string will need to be summarized.")]
     public async Task<string> AnalyzeDiskImageAsync(string filePath)
     {
         if (!File.Exists(filePath))

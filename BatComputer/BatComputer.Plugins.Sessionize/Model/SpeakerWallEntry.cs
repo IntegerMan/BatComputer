@@ -5,7 +5,7 @@ namespace MattEland.BatComputer.Plugins.Sessionize.Model;
 public class SpeakerWallEntry
 {
     [JsonProperty("id")]
-    public Guid Id { get; set; }
+    public string Id { get; set; }
 
     [JsonProperty("firstName")]
     public required string FirstName { get; set; }
