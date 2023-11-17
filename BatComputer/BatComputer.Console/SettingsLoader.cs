@@ -26,6 +26,7 @@ public static class SettingsLoader
         ReadRequiredSetting(config, skin, "AzureOpenAIKey", v => settings.AzureOpenAiKey = v);
         ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => settings.OpenAiDeploymentName = v);
         ReadOptionalSetting(config, skin, "BingKey", v => settings.BingKey = v);
+        ReadOptionalSetting(config, skin, "SessionizeToken", v => settings.SessionizeToken = v);
         AnsiConsole.WriteLine();
 
         return settings;

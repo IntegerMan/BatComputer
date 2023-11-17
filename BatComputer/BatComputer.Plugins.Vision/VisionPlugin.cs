@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Text;
-using Azure.AI.Vision.Common;
 using Azure;
+using Azure.AI.Vision.Common;
 using Azure.AI.Vision.ImageAnalysis;
 using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel;
 
-namespace BatComputer.Plugins.Vision;
+namespace MattEland.BatComputer.Plugins.Vision;
 
 public class VisionPlugin
 {

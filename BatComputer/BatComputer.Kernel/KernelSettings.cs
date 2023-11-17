@@ -19,6 +19,14 @@ public class KernelSettings {
     [Required]
     public string OpenAiDeploymentName { get; set; }
 
+    /// <summary>
+    /// The token for a Sessionize URL
+    /// </summary>
+    /// <example>
+    /// For https://sessionize.com/api/v2/abcd/view/SpeakerWall the token would be abcd
+    /// </example>
+    public string? SessionizeToken { get; set; }
+
     public string? BingKey { get; set; }
 
     public void Validate()
@@ -50,5 +58,6 @@ public class KernelSettings {
     public bool IsValid => !Validate(new ValidationContext(this)).Any();
     public bool SupportsSearch => !string.IsNullOrWhiteSpace(BingKey);
     public bool SupportsAiServices => !string.IsNullOrWhiteSpace(AzureAiServicesEndpoint) && !string.IsNullOrWhiteSpace(AzureAiServicesKey);
+    public bool SupportsSessionize => !string.IsNullOrWhiteSpace(SessionizeToken);
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

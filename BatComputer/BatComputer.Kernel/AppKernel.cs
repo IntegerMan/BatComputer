@@ -1,5 +1,4 @@
 ﻿using Azure.AI.OpenAI;
-using BatComputer.Plugins.Vision;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
@@ -7,6 +6,8 @@ using Microsoft.SemanticKernel.Plugins.Core;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.Plugins.Camera;
+using MattEland.BatComputer.Plugins.Sessionize;
+using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
@@ -54,8 +55,13 @@ public class AppKernel : IAppKernel
 
         if (settings.SupportsSearch)
         {
-            WebSearchConnector = new BingConnector(settings.BingKey);
+            WebSearchConnector = new BingConnector(settings.BingKey!);
             Kernel.ImportFunctions(new WebSearchEnginePlugin(WebSearchConnector), "Search");
+        }
+
+        if (settings.SupportsSessionize)
+        {
+            Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
 
         _plannerConfig = new SequentialPlannerConfig();
@@ -82,7 +88,7 @@ public class AppKernel : IAppKernel
         if (usage is {TotalTokens: > 0})
         {
             string stepName = e.FunctionView.Name.StartsWith("func", StringComparison.OrdinalIgnoreCase)
-                    ? e.FunctionView.PluginName 
+                    ? e.FunctionView.PluginName.Replace("_Excluded", "", StringComparison.OrdinalIgnoreCase) 
                     : e.FunctionView.Name;
 
             AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens, $"{stepName} Token Usage"));
