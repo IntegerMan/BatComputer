@@ -57,7 +57,7 @@ public static class OutputHelpers
         RenderDump(widget);
     }
 
-    public static void RenderImage(string path, int? maxWidth = 20)
+    public static void RenderImage(this string path, int? maxWidth = 20)
     {
         CanvasImage image = new(path);
         image.MaxWidth = maxWidth;
@@ -65,11 +65,18 @@ public static class OutputHelpers
         AnsiConsole.Write(image);
     }
 
-    public static void RenderDump(IWidget widget)
+    public static void RenderDump(this IWidget widget)
     {
         widget.Dump(label: widget.ToString(),
             typeNames: new TypeNamingConfig { ShowTypeNames = false },
             tableConfig: new TableConfig { ShowTableHeaders = false },
             members: new MembersConfig { IncludeFields = false, IncludeNonPublicMembers = false });
+    }
+
+    public static void DisplayWarning(this ConsoleSkin skin, string message)
+    {
+        WarningWidget warning = new(message);
+        WarningWidgetRenderer renderer = new();
+        renderer.Render(warning, skin);
     }
 }

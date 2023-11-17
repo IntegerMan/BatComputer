@@ -5,6 +5,8 @@ using System.ComponentModel;
 using MattEland.BatComputer.Plugins.Sessionize.Model;
 using Newtonsoft.Json;
 using System;
+using MattEland.BatComputer.Abstractions.Widgets;
+using static System.Collections.Specialized.BitVector32;
 
 namespace MattEland.BatComputer.Plugins.Sessionize;
 
@@ -174,7 +176,7 @@ public class SessionizePlugin : IDisposable
         if (session == null)
             return $"Could not find a session named '{sessionName}'";
 
-        // TODO: This probably deserves a widget
+        _kernel.AddWidget(new DataWidget("Session Details", session));
 
         return JsonConvert.SerializeObject(session); // TODO: Maybe not JSON?
     }
@@ -187,7 +189,7 @@ public class SessionizePlugin : IDisposable
         if (speaker == null)
             return $"Could not find a speaker named '{speakerName}'";
 
-        // TODO: This probably deserves a widget
+        _kernel.AddWidget(new DataWidget("Speaker Details", speaker));
 
         return JsonConvert.SerializeObject(speaker); // TODO: Maybe not JSON?
     }

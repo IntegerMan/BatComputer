@@ -15,8 +15,8 @@ public class WeatherPlugin : OpenMeteoPlugin
     }
 
     [SKFunction, Description("Gets current weather information from a latitude and longitude")]
-    public async Task<string> GetCurrentWeatherFromLatLong([Description("The latitude and longitude. Formatted like: lat,long")] string latLong, 
-        [Description("An optional meaningful description of the lat/long such as a city name or a zip code")] string? locationDescription = null)
+    public async Task<string> GetCurrentWeatherFromLatLong(
+        [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
     {
         if (!latLong.Contains(','))
         {
@@ -29,14 +29,14 @@ public class WeatherPlugin : OpenMeteoPlugin
         CurrentWeather? current = response.Current;
         if (current == null)
         {
-            return $"Could not get current weather for lat {lat}, long {lon}";
+            return $"Could not get current weather for lat/long {latLong}";
         }
 
         StringBuilder sb = new();
 
         CurrentWeatherWidget widget = new()
         {
-            Title = !string.IsNullOrWhiteSpace(locationDescription) ? $"{locationDescription} Weather" : "Current Weather",
+            Title = "Current Weather",
             Temperature = $"{current.Temperature}\u00b0F",
             CloudCover = $"{current.CloudCoverPercent:P0}",
             IsDay = current.IsDay,
@@ -85,7 +85,8 @@ public class WeatherPlugin : OpenMeteoPlugin
     }
 
     [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
-    public async Task<string> GetTomorrowWeatherFromLatLong([Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
+    public async Task<string> GetTomorrowWeatherFromLatLong(
+        [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
     {
         if (!latLong.Contains(','))
         {
@@ -129,7 +130,8 @@ public class WeatherPlugin : OpenMeteoPlugin
     }
 
     [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
-    public async Task<string> GetDailyWeatherFromLatLong([Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong,
+    public async Task<string> GetDailyWeatherFromLatLong(
+        [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong,
         [Description("A string representing a calendar date such as 9/10/80 or 2023-11-13")] string dateStr)
     {
         if (!latLong.Contains(','))

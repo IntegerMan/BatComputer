@@ -6,6 +6,8 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ChatCommand : AppCommand
 {
+    public override bool CanExecute(AppKernel kernel) => !kernel.HasPlanner;
+
     public override async Task ExecuteAsync(AppKernel kernel)
     {
         string prompt = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Type your message:[/]");
