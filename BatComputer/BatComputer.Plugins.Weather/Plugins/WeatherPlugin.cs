@@ -38,10 +38,10 @@ public class WeatherPlugin : OpenMeteoPlugin
         {
             Title = "Current Weather",
             Temperature = $"{current.Temperature}\u00b0F",
-            CloudCover = $"{current.CloudCoverPercent:P0}",
+            CloudCover = $"{(current.CloudCoverPercent)} %",
             IsDay = current.IsDay,
-            Rainfall = $"{current.Rain:D1} inches",
-            Snowfall = $"{current.Snowfall:D1} inches"
+            Rainfall = current.Rain > 0 ? $"{current.Rain:0.#} inches" : "None",
+            Snowfall = current.Snowfall > 0 ? $"{current.Snowfall:0.#} inches" : "None"
         };
 
         string? weatherName = CurrentWeatherCode(current.WeatherCode);
@@ -56,7 +56,8 @@ public class WeatherPlugin : OpenMeteoPlugin
             sb.Append("It is dark outside. ");
         }
 
-        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. Cloud cover is currently {current.CloudCoverPercent:P0}");
+        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. " +
+            $"Cloud cover is currently {current.CloudCoverPercent} %");
 
         if (current.Snowfall > 0)
         {

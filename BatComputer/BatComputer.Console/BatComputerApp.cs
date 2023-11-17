@@ -8,6 +8,7 @@ using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.ConsoleApp.Skins;
 using Spectre.Console;
+using MattEland.BatComputer.Abstractions.Strategies;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -28,35 +29,49 @@ public class BatComputerApp
             new WarningWidget("No Bing Search Key Supplied. Web Search will be disabled.").Render(Skin);
         }
 
+        // Warn the user that actual costs may be incurred from using the app
+        new InfoWidget("Disclaimer", "This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
+        if (!AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
+        {
+            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program terminating[/]");
+            return 0;
+        }
+
+        // Configure the application
+        PlannerStrategy planner = SelectPlanner();
+        AppKernel appKernel = new(Settings, planner);
+
+        // Greet the user and set up speech if it's configured
         if (Settings.SupportsAiServices)
         {
             Speech = new SpeechProvider(Settings.AzureAiServicesRegion, Settings.AzureAiServicesKey, Settings.SpeechVoiceName);
+            _ = Speech.SpeakAsync($"Welcome to {Skin.AppNameWithPrefix}");
         }
 
-        // Load plugins and display loaded plugins
-        AppKernel appKernel = new(Settings);
+        // Show plugins now that they're paying attention
+        AnsiConsole.WriteLine();
+        appKernel.RenderKernelPluginsChart(Skin);
+        AnsiConsole.WriteLine();
 
-        // Warn the user that actual costs may be incurred from using the app
-        new InfoWidget("Disclaimer","This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
-        if (AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
-        {
-            _ = Speech?.SpeakAsync($"Welcome to {Skin.AppNameWithPrefix}");
-
-            // Show plugins now that they're paying attention
-            AnsiConsole.WriteLine();
-            appKernel.RenderKernelPluginsChart(Skin);
-            AnsiConsole.WriteLine();
-
-            // Primary loop
-            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]System Ready[/]");
-            Menus.Push(new RootMenu(this));
-            await RunMainLoopAsync(appKernel);
-        }
+        // Primary loop
+        AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]System Ready[/]");
+        Menus.Push(new RootMenu(this));
+        await RunMainLoopAsync(appKernel);
 
         // Indicate success on exit (for a fun time, ask me why I always log when a program completes)
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
         return 0;
+    }
+
+    private PlannerStrategy SelectPlanner()
+    {
+        SelectionPrompt<PlannerStrategy> choices = new SelectionPrompt<PlannerStrategy>()
+        .Title($"[{Skin.NormalStyle}]Select a planner[/]")
+        .HighlightStyle(Skin.AccentStyle)
+        .AddChoices([new ActionPlannerStrategy(), new SequentialPlannerStrategy()]);
+        PlannerStrategy planner = AnsiConsole.Prompt(choices);
+        return planner;
     }
 
     public Stack<MenuBase> Menus { get; } = new();
@@ -77,7 +92,7 @@ public class BatComputerApp
 
             AppCommand choice = AnsiConsole.Prompt(choices);
 
-            await choice.ExecuteAsync( appKernel);
+            await choice.ExecuteAsync(appKernel);
         }
     }
 

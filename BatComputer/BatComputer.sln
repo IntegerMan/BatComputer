@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Weather
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Abstractions", "BatComputer.Abstractions\BatComputer.Abstractions.csproj", "{E9E51E20-008A-411C-9DEE-E136E35A2297}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Skins", "BatComputer.Skins\BatComputer.Skins.csproj", "{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.ConsoleApp.Skins", "BatComputer.Skins\BatComputer.ConsoleApp.Skins.csproj", "{68A11DBB-CB98-4ED2-8A7B-55DC9EF65AA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{3B5980BA-EEBD-4FBD-B583-2C7C5B872AD1}"
 EndProject
@@ -23,11 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.ConsoleApp.Abst
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Camera", "BatComputer.Plugins.Camera\BatComputer.Plugins.Camera.csproj", "{0EF937A8-8AAB-4C60-A22F-2D94B31007E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Vision", "BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj", "{F82EE726-570A-4278-A208-7019BC8BEA47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Vision", "BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj", "{F82EE726-570A-4278-A208-7019BC8BEA47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Plugins.Sessionize", "BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj", "{C81F9126-82F8-4141-AA09-6F7E619A4A80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Sessionize", "BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj", "{C81F9126-82F8-4141-AA09-6F7E619A4A80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BatComputer.Speech", "BatComputer.Speech\BatComputer.Speech.csproj", "{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Speech", "BatComputer.Speech\BatComputer.Speech.csproj", "{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

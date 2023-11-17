@@ -1,6 +1,5 @@
 ﻿using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Planners;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Core;
 using MattEland.BatComputer.Abstractions;
@@ -16,19 +15,19 @@ using Microsoft.SemanticKernel.Events;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
+using MattEland.BatComputer.Abstractions.Strategies;
 
 namespace MattEland.BatComputer.Kernel;
 
 public class AppKernel : IAppKernel
 {
     public IKernel Kernel { get; }
-    public SequentialPlanner? Planner { get; }
-    private readonly SequentialPlannerConfig _plannerConfig;
+    public Planner? Planner { get; }
     private readonly ChatPlugin _chat;
 
     public Plan? LastPlan { get; private set; }
 
-    public AppKernel(KernelSettings settings)
+    public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
         KernelBuilder builder = new();
         builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
@@ -64,18 +63,17 @@ public class AppKernel : IAppKernel
             Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
 
-        _plannerConfig = new SequentialPlannerConfig();
-        _plannerConfig.AllowMissingFunctions = false;
-        _plannerConfig.ExcludedPlugins.Add("ConversationSummaryPlugin");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationTopics");
-        _plannerConfig.ExcludedFunctions.Add("GetConversationActionItems");
+        IEnumerable<string> excludedPlugins = ["ConversationSummaryPlugin"];
+        IEnumerable<string> excludedFunctions = [
+                "GetConversationTopics",
+                "GetConversationActionItems"
+            ];
 
-        Planner = new SequentialPlanner(Kernel, _plannerConfig);
+        Planner = plannerStrategy?.BuildPlanner(Kernel, excludedPlugins, excludedFunctions);
     }
 
     private void OnFunctionInvoking(object? sender, FunctionInvokingEventArgs e)
     {
-        
     }
 
     private void OnFunctionInvoked(object? sender, FunctionInvokedEventArgs e)
@@ -97,10 +95,13 @@ public class AppKernel : IAppKernel
 
     public BingConnector? WebSearchConnector { get; }
 
-    public bool IsFunctionExcluded(FunctionView f) 
-        => f.PluginName == "SequentialPlanner_Excluded" ||
-            _plannerConfig.ExcludedFunctions.Contains(f.Name) ||
-            _plannerConfig.ExcludedPlugins.Contains(f.PluginName);
+    public bool IsFunctionExcluded(FunctionView _) => false;
+    /* TODO:
+        => Planner == null || 
+            f.PluginName == "SequentialPlanner_Excluded" ||
+            Planner.ExcludedFunctions.Contains(f.Name) ||
+            Planner.ExcludedPlugins.Contains(f.PluginName);
+    */
     
     public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }

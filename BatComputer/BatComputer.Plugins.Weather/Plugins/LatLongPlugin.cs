@@ -17,6 +17,8 @@ public class LatLongPlugin : OpenMeteoPlugin
     [SKFunction, Description("Gets a latitude and longitude string from a city, zip code, or location. Result is formatted like: lat,long")]
     public async Task<string> GetLatLong([Description("The city or location such as Columbus, Ohio or a Zip code like 43081")] string location)
     {
+        // Clean bad inputs. TODO: Centralize this!
+        location = location.Replace(".output", "", StringComparison.OrdinalIgnoreCase);
 
         if (location.Contains('$') || location.Contains('.'))
         {
