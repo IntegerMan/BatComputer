@@ -8,8 +8,6 @@ using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
-using ChatHistory = Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
-using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Events;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
@@ -94,7 +92,6 @@ public class AppKernel : IAppKernel
     public bool IsFunctionExcluded(FunctionView f)
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
 
-    public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }
     public string? LastGoal { get; private set; }
     public PlanExecutionResult? LastResult { get; set; }
@@ -107,25 +104,16 @@ public class AppKernel : IAppKernel
     public async Task<Plan> PlanAsync(string userText)
     {
         LastPlan = null;
-        LastMessage = null;
+        LastMessage = userText;
         LastResult = null;
         LastGoal = userText;
-
         Widgets.Clear();
 
-        Plan plan;
-        if (!HasPlanner)
-        {
-            plan = new Plan(_chat);
-        } 
-        else
-        {
-            plan = await Planner!.CreatePlanAsync(userText);
-        }
+        Plan plan = Planner is null 
+            ? new Plan(_chat) 
+            : await Planner.CreatePlanAsync(userText);
 
         LastPlan = plan;
-        LastMessage = userText;
-
         return plan;
     }
 
