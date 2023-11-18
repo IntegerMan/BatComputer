@@ -72,6 +72,7 @@ public class BatComputerApp
         .AddChoices([
             new ActionPlannerStrategy(), 
             new SequentialPlannerStrategy(), 
+            new StepwisePlannerStrategy(),
             new NoPlannerStrategy()
         ]);
 

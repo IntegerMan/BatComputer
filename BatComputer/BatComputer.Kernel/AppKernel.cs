@@ -125,8 +125,8 @@ public class AppKernel : IAppKernel
         LastMessage = null;
         Widgets.Clear();
 
-        LastGoal = $"The goal of the plan is to answer the prompt: {userText} in the voice of Alfred addressing the user, Batman. Every step should have one output variable. When passing variables as parameters, pass them as $VARIABLE_NAME and not $VARIABLE_NAME.output";
-        Plan plan = await Planner!.CreatePlanAsync(LastGoal);
+        LastGoal = userText;
+        Plan plan = await Planner!.CreatePlanAsync(userText);
 
         LastPlan = plan;
         LastMessage = userText;
