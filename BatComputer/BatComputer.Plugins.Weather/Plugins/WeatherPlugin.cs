@@ -40,8 +40,8 @@ public class WeatherPlugin : OpenMeteoPlugin
             Temperature = $"{current.Temperature}\u00b0F",
             CloudCover = $"{(current.CloudCoverPercent)} %",
             IsDay = current.IsDay,
-            Rainfall = current.Rain > 0 ? $"{current.Rain:0.#} inches" : "None",
-            Snowfall = current.Snowfall > 0 ? $"{current.Snowfall:0.#} inches" : "None"
+            Rainfall = current.Rain > 0 ? $"{current.Rain:0.##} inches" : "None",
+            Snowfall = current.Snowfall > 0 ? $"{current.Snowfall:0.##} inches" : "None"
         };
 
         string? weatherName = CurrentWeatherCode(current.WeatherCode);

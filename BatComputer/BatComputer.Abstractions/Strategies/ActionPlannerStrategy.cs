@@ -15,4 +15,6 @@ public class ActionPlannerStrategy : PlannerStrategy
 
         return new ActionPlannerWrapper(planner);
     }
+
+    public override string ToString() => "Action Planner";
 }

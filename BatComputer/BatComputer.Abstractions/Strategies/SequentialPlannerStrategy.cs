@@ -20,4 +20,6 @@ public class SequentialPlannerStrategy : PlannerStrategy
 
         return new SequentialPlannerWrapper(planner);
     }
+
+    public override string ToString() => "Sequential Planner";
 }

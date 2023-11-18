@@ -69,9 +69,13 @@ public class BatComputerApp
         SelectionPrompt<PlannerStrategy> choices = new SelectionPrompt<PlannerStrategy>()
         .Title($"[{Skin.NormalStyle}]Select a planner[/]")
         .HighlightStyle(Skin.AccentStyle)
-        .AddChoices([new ActionPlannerStrategy(), new SequentialPlannerStrategy()]);
-        PlannerStrategy planner = AnsiConsole.Prompt(choices);
-        return planner;
+        .AddChoices([
+            new ActionPlannerStrategy(), 
+            new SequentialPlannerStrategy(), 
+            new NoPlannerStrategy()
+        ]);
+
+        return AnsiConsole.Prompt(choices);
     }
 
     public Stack<MenuBase> Menus { get; } = new();
