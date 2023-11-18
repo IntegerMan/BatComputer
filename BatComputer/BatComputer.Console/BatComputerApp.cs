@@ -70,9 +70,9 @@ public class BatComputerApp
         .Title($"[{Skin.NormalStyle}]Select a planner[/]")
         .HighlightStyle(Skin.AccentStyle)
         .AddChoices([
-            new ActionPlannerStrategy(), 
-            new SequentialPlannerStrategy(), 
             new StepwisePlannerStrategy(),
+            new SequentialPlannerStrategy(),
+            new ActionPlannerStrategy(),
             new NoPlannerStrategy()
         ]);
 

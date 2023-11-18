@@ -16,7 +16,7 @@ public static class ResultTreeRenderer
 
     private static Tree BuildTree(PlanExecutionResult result, ConsoleSkin skin)
     {
-        Tree planTree = new($"[{skin.NormalStyle}]Execution Result[/]");
+        Tree planTree = new($"[{skin.NormalStyle}]Explanation[/]");
 
         PopulateTree(result, skin, planTree);
 
