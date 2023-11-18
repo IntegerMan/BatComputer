@@ -141,6 +141,15 @@ public class AppKernel : IAppKernel
             LastResult = new PlanExecutionResult()
             {
                 Output = response,
+                StepsCount = 1,
+                Iterations = 1,
+                FunctionsUsed = "Chat",
+                Summary = [new StepSummary()
+                                {
+                                    Action = "Chat",
+                                    Thought = prompt,
+                                    Observation = response,
+                                }]
             };
 
             return response;
