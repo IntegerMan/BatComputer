@@ -1,16 +1,5 @@
-﻿using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
-using Microsoft.SemanticKernel.Orchestration;
+﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using System.Security.Cryptography;
-using LLama.Common;
-using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.TextCompletion;
-using LLamaSharp.SemanticKernel.TextCompletion;
-using Microsoft.SemanticKernel.AI;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 

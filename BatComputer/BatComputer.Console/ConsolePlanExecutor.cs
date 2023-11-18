@@ -39,26 +39,24 @@ public class ConsolePlanExecutor
             if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase) ||
                 ex.Message.Contains("Unable to create plan for goal with available functions", StringComparison.OrdinalIgnoreCase))
             {
-                Skin.WriteErrorLine("It was not possible to fulfill this request with the available skills. Will send as a chat request without planning.");                
+                Skin.WriteErrorLine("It was not possible to fulfill this request with the available skills.");
             }
             else
             {
                 // Not an impossible plan. Display additional details
                 Skin.WriteException(ex);
-                Skin.WriteErrorLine("Could not generate a plan. Will send as a chat request without planning.");
+                Skin.WriteErrorLine("Could not generate a plan.");
             }
 
-            // Fallback to handling via chat request
-            return await _kernel.GetChatPromptResponseAsync(prompt);
+            return null;
         }
         catch (InvalidCastException ex)
         {
             // Invalid Cast can happen with llamaSharp
             Skin.WriteException(ex);
-            Skin.WriteErrorLine("Could not generate a plan. Will send as a chat request without planning.");
+            Skin.WriteErrorLine("Could not generate a plan.");
 
-            // Fallback to handling via chat request
-            return await _kernel.GetChatPromptResponseAsync(prompt);
+            return null;
         }
 
         try

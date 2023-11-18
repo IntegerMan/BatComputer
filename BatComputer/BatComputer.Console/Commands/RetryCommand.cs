@@ -10,15 +10,8 @@ public class RetryCommand : AppCommand
     {
         string? response;
 
-        if (kernel.HasPlanner)
-        {
-            ConsolePlanExecutor executor = new(App, kernel);
-            response = await executor.GetKernelPromptResponseAsync(kernel.LastMessage!);
-        }
-        else
-        {
-            response = await kernel.GetChatPromptResponseAsync(kernel.LastMessage!);
-        }
+        ConsolePlanExecutor executor = new(App, kernel);
+        response = await executor.GetKernelPromptResponseAsync(kernel.LastMessage!);
 
         OutputHelpers.DisplayChatResponse(App, kernel, response);
     }

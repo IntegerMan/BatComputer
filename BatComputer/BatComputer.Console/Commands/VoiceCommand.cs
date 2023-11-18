@@ -21,18 +21,10 @@ public class VoiceCommand : AppCommand
 
         if (!string.IsNullOrWhiteSpace(prompt))
         {
-            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Detected Speech:[/] {Markup.Escape(prompt)}");
-            AnsiConsole.WriteLine();
+            ConsolePlanExecutor executor = new(App, kernel);
+            string? response = await executor.GetKernelPromptResponseAsync(prompt);
 
-            string? response = null;
-            await AnsiConsole.Status().StartAsync("Sending...", async ctx =>
-            {
-                ctx.Spinner = Skin.Spinner;
-
-                response = await kernel.GetChatPromptResponseAsync(prompt);
-            });
-
-            OutputHelpers.DisplayChatResponse(App, kernel, response!);
+            OutputHelpers.DisplayChatResponse(App, kernel, response);
         }
         else
         {

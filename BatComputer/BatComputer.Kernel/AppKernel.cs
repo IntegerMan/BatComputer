@@ -20,9 +20,10 @@ namespace MattEland.BatComputer.Kernel;
 
 public class AppKernel : IAppKernel
 {
+    private readonly ISKFunction _chat;
+
     public IKernel Kernel { get; }
     public Planner? Planner { get; }
-    private readonly ChatPlugin _chat;
 
     public Plan? LastPlan { get; private set; }
 
@@ -36,14 +37,13 @@ public class AppKernel : IAppKernel
         Kernel.FunctionInvoking += OnFunctionInvoking;
         Kernel.FunctionInvoked += OnFunctionInvoked;
 
-        _chat = new ChatPlugin(this);
-        Kernel.ImportFunctions(_chat, "Chat");
-
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
+        Kernel.ImportFunctions(new ChatPlugin(this), "Chat");
+        _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         if (settings.SupportsAiServices)
         {
@@ -106,11 +106,6 @@ public class AppKernel : IAppKernel
 
     public async Task<Plan> PlanAsync(string userText)
     {
-        if (!HasPlanner)
-        {
-            throw new InvalidOperationException("The planner is not enabled");
-        }
-
         LastPlan = null;
         LastMessage = null;
         LastResult = null;
@@ -118,50 +113,20 @@ public class AppKernel : IAppKernel
 
         Widgets.Clear();
 
-        Plan plan = await Planner!.CreatePlanAsync(userText);
+        Plan plan;
+        if (!HasPlanner)
+        {
+            plan = new Plan(_chat);
+        } 
+        else
+        {
+            plan = await Planner!.CreatePlanAsync(userText);
+        }
 
         LastPlan = plan;
         LastMessage = userText;
 
         return plan;
-    }
-
-    public async Task<string> GetChatPromptResponseAsync(string prompt)
-    {
-        try
-        {
-            LastPlan = null;
-            LastMessage = prompt;
-            LastResult = null;
-            LastGoal = null;
-            Widgets.Clear();
-
-            string response = await _chat.GetChatResponse(prompt);
-
-            LastResult = new PlanExecutionResult()
-            {
-                Output = response,
-                StepsCount = 1,
-                Iterations = 1,
-                FunctionsUsed = "Chat",
-                Summary = [new StepSummary()
-                                {
-                                    Action = "Chat",
-                                    Thought = prompt,
-                                    Observation = response,
-                                }]
-            };
-
-            return response;
-        }
-        catch (HttpOperationException ex)
-        {
-            if (ex.Message.Contains("does not work with the specified model"))
-            {
-                return "Your model does not support the current option. You may be trying to use a completion model with a chat feature or vice versa. Try using a different deployment model.";
-            }
-            throw;
-        }
     }
 
     internal async Task<string> GetPromptedReplyAsync(string command)
