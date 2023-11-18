@@ -39,7 +39,7 @@ public class ConsolePlanExecutor
             else
             {
                 // Not an impossible plan. Display additional details
-                AnsiConsole.WriteException(ex);
+                AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
                 AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
             }
 
@@ -49,7 +49,7 @@ public class ConsolePlanExecutor
         catch (InvalidCastException ex)
         {
             // Invalid Cast can happen with llamaSharp
-            AnsiConsole.WriteException(ex);
+            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} Could not generate a plan. Will send as a chat request without planning.[/]");
 
             // Fallback to handling via chat request
@@ -60,7 +60,22 @@ public class ConsolePlanExecutor
         DisplayPlanDescription(plan);
 
         // ExecuteAsync the plan step by step and show progress
-        await ExecutePlanAsync(plan);
+        try
+        {
+            await ExecutePlanAsync(plan);
+        }
+        catch (HttpOperationException ex)
+        {
+            if (ex.Message.Contains("content management policy", StringComparison.OrdinalIgnoreCase))
+            {
+                AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} The message or its response was flagged for inappropriate content and could not be processed.[/]");
+            } 
+            else
+            {
+                AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+                AnsiConsole.MarkupLine($"[{Skin.ErrorStyle}]{Skin.ErrorEmoji} {Markup.Escape(ex.Message)}.[/]");
+            }
+        }
 
         // Get the response from the plan
         return GetResponse(plan);
@@ -99,35 +114,46 @@ public class ConsolePlanExecutor
 
         List<ProgressTask> tasks = new();
 
-        await AnsiConsole.Progress()
-            .AutoClear(false)
-            .HideCompleted(false)
-            .StartAsync(async ctx =>
-            {
-                // SKContext result = await appKernel.Planner.ExecutePlanAsync(appKernel.LastGoal, appKernel.Kernel.CreateNewContext());
+        await AnsiConsole.Status().StartAsync("Executing...", async ctx =>
+        {
+            ctx.Spinner = Skin.Spinner;
 
-                // Register the tasks we'll be accomplishing so the user can see them in order
-                foreach (Plan step in plan.Steps)
-                {
-                    ProgressTask task = ctx.AddTask(step.Name, new ProgressTaskSettings() { MaxValue = 100, AutoStart = false });
-                    tasks.Add(task);
-                }
+            await plan.InvokeAsync(_kernel.Kernel);
+        });
 
-                // Sequentially execute each step
-                foreach (ProgressTask task in tasks)
-                {
-                    // Have the UI show it as in progress
-                    task.StartTask();
-                    task.IsIndeterminate();
+        AnsiConsole.WriteLine("Done");
 
-                    // ExecuteAsync the step
-                    await _kernel.Kernel.StepAsync(plan);
+        /*
+await AnsiConsole.Progress()
+    .AutoClear(false)
+    .HideCompleted(false)
+    .StartAsync(async ctx =>
+    {
+        // SKContext result = await appKernel.Planner.ExecutePlanAsync(appKernel.LastGoal, appKernel.Kernel.CreateNewContext());
 
-                    // Complete it in the UI
-                    task.Increment(100);
-                    task.StopTask();
-                }
-            });
+        // Register the tasks we'll be accomplishing so the user can see them in order
+        foreach (Plan step in plan.Steps)
+        {
+            ProgressTask task = ctx.AddTask(step.Name, new ProgressTaskSettings() { MaxValue = 100, AutoStart = false });
+            tasks.Add(task);
+        }
+
+        // Sequentially execute each step
+        foreach (ProgressTask task in tasks)
+        {
+            // Have the UI show it as in progress
+            task.StartTask();
+            task.IsIndeterminate();
+
+            // ExecuteAsync the step
+            await _kernel.Kernel.StepAsync(plan);
+
+            // Complete it in the UI
+            task.Increment(100);
+            task.StopTask();
+        }
+    });
+        */
     }
 
 

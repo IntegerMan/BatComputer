@@ -12,6 +12,7 @@ public class SequentialPlannerStrategy : PlannerStrategy
         // Configure the planner
         SequentialPlannerConfig config = new();
         config.AllowMissingFunctions = false;
+        // config.RelevancyThreshold = 0.6;
 
         ExcludeFunctions(config, excludedPlugins, excludedFunctions);
 
