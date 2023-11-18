@@ -8,6 +8,7 @@ using MattEland.BatComputer.ConsoleApp.Helpers;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -158,8 +159,53 @@ public class ConsolePlanExecutor
 
         if (result.TryGetMetadataValue("stepsTaken", out string json))
         {
-            List<StepwiseSummary>? summary = JsonConvert.DeserializeObject<List<StepwiseSummary>>(json);
-            executionResult.Summary = summary ?? new List<StepwiseSummary>();
+            JArray items = JArray.Parse(json);
+
+            List<StepwiseSummary> summaries = new();
+
+            foreach (JToken item in items)
+            {
+                StepwiseSummary summary = new();
+
+                if (item["action"] != null)
+                {
+                    summary.Action = item["action"]!.Value<string>();
+                }
+
+                if (item["thought"] != null)
+                {
+                    summary.Thought = item["thought"]!.Value<string>();
+                }
+
+                if (item["observation"] != null)
+                {
+                    summary.Observation = item["observation"]!.Value<string>();
+                }
+
+                if (item["action_variables"] != null)
+                {
+                    foreach (JProperty variable in item["action_variables"]!)
+                    {
+                        summary.ActionVariables[variable.Name] = variable.Value?.ToString();
+                    }
+                }
+
+                if (item["final_answer"] != null)
+                {
+                    summary.FinalAnswer = item["final_answer"]!.Value<string>();
+                }
+
+                if (item["original_response"] != null)
+                {
+                    summary.OriginalResponse = item["original_response"]!.Value<string>();
+                }
+
+                summaries.Add(summary);
+            }
+            // get JSON result objects into a list
+            //IList<JToken> results = googleSearch["responseData"]["results"].Children().ToList();
+
+            executionResult.Summary = summaries;
         }
 
         if (result.TryGetMetadataValue("functionCount", out string functionCount))

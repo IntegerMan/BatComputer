@@ -14,6 +14,9 @@ public class ShowExplanationCommand : AppCommand
         int step = 1;
         foreach (StepwiseSummary summary in kernel.LastResult?.Summary.Where(t => !string.IsNullOrWhiteSpace(t.Thought)) ?? Enumerable.Empty<StepwiseSummary>())
         {
+            if (string.IsNullOrEmpty(summary.Thought))
+                continue;
+
             Panel box = new Panel($"[{Skin.DebugStyle}] {Markup.Escape(summary.Thought!)} [/]")
             .Border(BoxBorder.Rounded)
             .BorderStyle(Skin.AccentStyle)
