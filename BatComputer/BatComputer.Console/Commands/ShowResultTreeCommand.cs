@@ -18,5 +18,5 @@ public class ShowResultTreeCommand : AppCommand
     {
     }
 
-    public override string DisplayText => "Show response tree";
+    public override string DisplayText => "Explain your last response";
 }

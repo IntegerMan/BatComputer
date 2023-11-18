@@ -25,9 +25,9 @@ public static class ResultTreeRenderer
 
     private static void PopulateTree(PlanExecutionResult result, ConsoleSkin skin, IHasTreeNodes tree)
     {
-        tree.AddNode($"[{skin.NormalStyle}]Iterations[/]: [{skin.DebugStyle}]{result.Iterations} [/]");
-        //tree.AddNode($"[{skin.NormalStyle}]Steps[/]: [{skin.AccentStyle}] {result.StepsCount} [/]");
-        //tree.AddNode($"[{skin.NormalStyle}]Functions[/]: [{skin.AccentStyle}] {result.FunctionsUsed} [/]");
+        tree.AddNode($"[{skin.NormalStyle}]Iterations[/]: [{skin.DebugStyle}]{result.Iterations}[/]");
+        //tree.AddNode($"[{skin.NormalStyle}]Steps[/]: [{skin.AccentStyle}] {result.StepsCount}[/]");
+        //tree.AddNode($"[{skin.NormalStyle}]Functions[/]: [{skin.AccentStyle}] {result.FunctionsUsed}[/]");
 
         int index = 1;
         foreach (StepwiseSummary summary in result.Summary)
