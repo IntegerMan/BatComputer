@@ -12,7 +12,7 @@ public class ShowResultTreeCommand : AppCommand
         return Task.CompletedTask;
     }
 
-    public override bool CanExecute(AppKernel kernel) => kernel.LastPlan != null;
+    public override bool CanExecute(AppKernel kernel) => kernel.LastResult != null;
 
     public ShowResultTreeCommand(BatComputerApp app) : base(app)
     {

@@ -81,6 +81,10 @@ public class ConsolePlanExecutor
             {
                 Skin.WriteErrorLine("The planner caused too many tokens to be used to fulfill the request. There may be too many functions enabled.");
             } 
+            else if (ex.Message.Contains("Missing value for parameter"))
+            {
+                Skin.WriteErrorLine(ex.Message);
+            }
             else
             {
                 Skin.WriteException(ex);

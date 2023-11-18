@@ -38,12 +38,12 @@ public static class ResultTreeRenderer
 
             if (!string.IsNullOrEmpty(summary.Thought))
             {
-                node.AddNode($"[{skin.AccentStyle}]Thought[/]: [{skin.DebugStyle}] {Markup.Escape(summary.Thought ?? "None")} [/]");
+                node.AddNode($"[{skin.AccentStyle}]Thought[/]: [{skin.DebugStyle}]{Markup.Escape(summary.Thought ?? "None")}[/]");
             }
 
             if (summary.ActionVariables.Any())
             {
-                TreeNode varNode = node.AddNode($"[{skin.NormalStyle}]Variables[/]");
+                TreeNode varNode = node.AddNode($"[{skin.NormalStyle}]Parameters[/]");
                 foreach (KeyValuePair<string, string> kvp in summary.ActionVariables)
                 {
                     varNode.AddNode($"[{skin.AccentStyle}]{Markup.Escape(kvp.Key)}[/]: [{skin.DebugStyle}]{Markup.Escape(kvp.Value.GetValueText())}[/]");
@@ -52,18 +52,22 @@ public static class ResultTreeRenderer
 
             if (!string.IsNullOrEmpty(summary.Observation))
             {
-                node.AddNode($"[{skin.AccentStyle}]Observation[/]: [{skin.DebugStyle}] {GetValueText(summary.Observation ?? "None")} [/]");
+                node.AddNode($"[{skin.AccentStyle}]Observation[/]: [{skin.DebugStyle}]{GetValueText(summary.Observation ?? "None")}[/]");
             }
         }
 
-        tree.AddNode($"[{skin.NormalStyle}]Output[/]: [{skin.SuccessStyle}] {GetValueText(result.Output ?? "None")} [/]");
+        tree.AddNode($"[{skin.NormalStyle}]Output[/]: [{skin.SuccessStyle}]{GetValueText(result.Output ?? "None")}[/]");
     }
 
     private static string GetValueText(this string value)
     {
         const int MaxShortLength = 140;
 
-        if (value.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase) && value.Length > MaxShortLength)
+        if (value == null)
+        {
+            return "null";
+        } 
+        else if (value.StartsWith("<!DOCTYPE html>", StringComparison.OrdinalIgnoreCase) && value.Length > MaxShortLength)
         {
             return "<!HTML>";
         }

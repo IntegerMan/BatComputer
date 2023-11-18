@@ -40,10 +40,8 @@ public static class ExecutionResultExtensions
                 {
                     Action = step.Name,
                     Thought = step.Description,
-                    Observation = string.Join(", ", step.Outputs),
-                    ActionVariables = step.Parameters.ToDictionary()!,
-                    FinalAnswer = null,
-                    OriginalResponse = null
+                    Observation = GetOutputObservations(step, plan),
+                    ActionVariables = GetInputVariables(step, plan),
                 }).ToList();
         }
 
@@ -72,6 +70,52 @@ public static class ExecutionResultExtensions
         }
 
         return executionResult;
+    }
+
+    private static Dictionary<string, string?> GetInputVariables(Plan step, Plan plan)
+    {
+        Dictionary<string, string?> results = new();
+
+        foreach (KeyValuePair<string, string> kvp in step.Parameters)
+        {
+            if (!string.IsNullOrEmpty(kvp.Value))
+            {
+                results[kvp.Key] = kvp.Value;
+            } 
+            else if (plan.State.TryGetValue(kvp.Key, out string? value))
+            {
+                results[kvp.Key] = value;
+            }
+            else
+            {
+                results[kvp.Key] = null;
+            }
+        }
+
+        return results;
+    }
+
+    private static string GetOutputObservations(Plan step, Plan plan)
+    {
+        StringBuilder sb = new();
+
+        foreach (string output in step.Outputs)
+        {
+            if (sb.Length > 0)
+            {
+                sb.Append(", ");
+            }
+            if (plan.State.TryGetValue(output, out string? value))
+            {
+                sb.Append($"${output}: {value}");
+            } 
+            else
+            {
+                sb.Append($"${output}: {output} is not defined");
+            }            
+        }
+
+        return sb.ToString();
     }
 
     private static List<StepSummary> DeserializeStepsTaken(string json)
