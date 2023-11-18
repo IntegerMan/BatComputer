@@ -39,11 +39,10 @@ public class AppKernel : IAppKernel
         _chat = new ChatPlugin(this);
         Kernel.ImportFunctions(_chat, "Chat");
 
-        Kernel.ImportFunctions(new TimeContextPlugins(), "Time"); // NOTE: There's another more comprehensive time plugin
+        Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
-        // Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
 
         if (settings.SupportsAiServices)
@@ -74,15 +73,16 @@ public class AppKernel : IAppKernel
 
     private void OnFunctionInvoked(object? sender, FunctionInvokedEventArgs e)
     {
-        if (!e.Metadata.TryGetValue("ModelResults", out object? value)) return;
+        if (!e.Metadata.TryGetValue("ModelResults", out object? value))
+            return;
 
         IReadOnlyCollection<ModelResult>? modelResults = value as IReadOnlyCollection<ModelResult>;
         CompletionsUsage? usage = modelResults?.First().GetOpenAIChatResult().Usage;
 
-        if (usage is {TotalTokens: > 0})
+        if (usage is { TotalTokens: > 0 })
         {
             string stepName = e.FunctionView.Name.StartsWith("func", StringComparison.OrdinalIgnoreCase)
-                    ? e.FunctionView.PluginName.Replace("_Excluded", "", StringComparison.OrdinalIgnoreCase) 
+                    ? e.FunctionView.PluginName.Replace("_Excluded", "", StringComparison.OrdinalIgnoreCase)
                     : e.FunctionView.Name;
 
             AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens, $"{stepName} Token Usage"));
@@ -91,9 +91,9 @@ public class AppKernel : IAppKernel
 
     public BingConnector? WebSearchConnector { get; }
 
-    public bool IsFunctionExcluded(FunctionView f) 
+    public bool IsFunctionExcluded(FunctionView f)
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
-    
+
     public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }
     public string? LastGoal { get; private set; }
@@ -163,5 +163,19 @@ public class AppKernel : IAppKernel
         ChatMessageBase chatResult = await result[0].GetChatMessageAsync();
 
         return chatResult.Content;
+    }
+
+    public async Task<PlanExecutionResult> ExecutePlanAsync()
+    {
+        if (LastPlan == null)
+        {
+            throw new InvalidOperationException("No plan has been generated. Generate a plan first.");
+        }
+
+        FunctionResult result = await LastPlan.InvokeAsync(Kernel);
+        PlanExecutionResult executionResult = result.ToExecutionResult(LastPlan);
+
+        LastResult = executionResult;
+        return executionResult;
     }
 }

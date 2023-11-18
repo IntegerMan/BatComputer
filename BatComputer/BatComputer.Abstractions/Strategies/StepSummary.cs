@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace MattEland.BatComputer.Abstractions.Strategies;
 
-public class StepwiseSummary
+public class StepSummary
 {
     public string? Thought { get; set; }
     public string? Action { get; set; }

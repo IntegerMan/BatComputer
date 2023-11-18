@@ -30,12 +30,16 @@ public static class ResultTreeRenderer
         //tree.AddNode($"[{skin.NormalStyle}]Functions[/]: [{skin.AccentStyle}] {result.FunctionsUsed}[/]");
 
         int index = 1;
-        foreach (StepwiseSummary summary in result.Summary)
+        foreach (StepSummary summary in result.Summary)
         {
-            if (string.IsNullOrEmpty(summary.Thought)) continue;
+            if (string.IsNullOrEmpty(summary.Action)) continue;
 
             TreeNode node = tree.AddNode($"[{skin.NormalStyle}]Step {index++}[/]: [{skin.AccentStyle}]{Markup.Escape(summary.Action ?? "None")}[/]");
-            node.AddNode($"[{skin.AccentStyle}]Thought[/]: [{skin.DebugStyle}] {Markup.Escape(summary.Thought ?? "None")} [/]");
+
+            if (!string.IsNullOrEmpty(summary.Thought))
+            {
+                node.AddNode($"[{skin.AccentStyle}]Thought[/]: [{skin.DebugStyle}] {Markup.Escape(summary.Thought ?? "None")} [/]");
+            }
 
             if (summary.ActionVariables.Any())
             {
@@ -46,7 +50,10 @@ public static class ResultTreeRenderer
                 }
             }
 
-            node.AddNode($"[{skin.AccentStyle}]Observation[/]: [{skin.DebugStyle}] {GetValueText(summary.Observation ?? "None")} [/]");            
+            if (!string.IsNullOrEmpty(summary.Observation))
+            {
+                node.AddNode($"[{skin.AccentStyle}]Observation[/]: [{skin.DebugStyle}] {GetValueText(summary.Observation ?? "None")} [/]");
+            }
         }
 
         tree.AddNode($"[{skin.NormalStyle}]Output[/]: [{skin.SuccessStyle}] {GetValueText(result.Output ?? "None")} [/]");

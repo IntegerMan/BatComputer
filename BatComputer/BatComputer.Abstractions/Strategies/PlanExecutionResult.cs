@@ -6,5 +6,5 @@ public class PlanExecutionResult
     public int StepsCount { get; set; }
     public int Iterations { get; set; }
     public string? FunctionsUsed { get; set; }
-    public List<StepwiseSummary> Summary { get; set; } = new();
+    public List<StepSummary> Summary { get; set; } = new();
 }

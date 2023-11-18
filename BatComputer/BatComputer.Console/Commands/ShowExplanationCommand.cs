@@ -1,7 +1,4 @@
 ﻿using MattEland.BatComputer.Abstractions.Strategies;
-using MattEland.BatComputer.Abstractions.Widgets;
-using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.Kernel;
 using Spectre.Console;
 
@@ -12,7 +9,7 @@ public class ShowExplanationCommand : AppCommand
     public override Task ExecuteAsync(AppKernel kernel)
     {
         int step = 1;
-        foreach (StepwiseSummary summary in kernel.LastResult?.Summary.Where(t => !string.IsNullOrWhiteSpace(t.Thought)) ?? Enumerable.Empty<StepwiseSummary>())
+        foreach (StepSummary summary in kernel.LastResult?.Summary.Where(t => !string.IsNullOrWhiteSpace(t.Thought)) ?? Enumerable.Empty<StepSummary>())
         {
             if (string.IsNullOrEmpty(summary.Thought))
                 continue;
