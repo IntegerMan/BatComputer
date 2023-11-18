@@ -18,12 +18,18 @@ public static class OutputHelpers
         AnsiConsole.WriteLine();
     }
 
-    public static void DisplayChatResponse(BatComputerApp app, IAppKernel kernel, string chatResponse)
+    public static void DisplayChatResponse(BatComputerApp app, IAppKernel kernel, string? chatResponse)
     {
         while (kernel.Widgets.Any())
         {
             IWidget widget = kernel.Widgets.Dequeue();
             widget.Render(app.Skin);
+        }
+
+        if (string.IsNullOrWhiteSpace(chatResponse))
+        {
+            DisplayWarning(app.Skin, "No response was provided");
+            return;
         }
 
         AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
@@ -47,7 +53,7 @@ public static class OutputHelpers
                 {
                     var renderer = Activator.CreateInstance(type);
                     MethodInfo renderMethod = type.GetMethod("Render")!;
-                    renderMethod.Invoke(renderer, new object[] { widget, skin });
+                    renderMethod.Invoke(renderer, [widget, skin]);
                     return;
                 }
             }
@@ -78,5 +84,20 @@ public static class OutputHelpers
         WarningWidget warning = new(message);
         WarningWidgetRenderer renderer = new();
         renderer.Render(warning, skin);
+    }
+
+    public static void WriteErrorLine(this ConsoleSkin skin, string message)
+    {
+        AnsiConsole.MarkupLine($"[{skin.ErrorStyle}]{skin.ErrorEmoji} {Markup.Escape(message)}[/]");
+    }
+
+    public static void WriteException(this ConsoleSkin skin, Exception ex, bool showMessage = true)
+    {
+        if (showMessage)
+        {
+            WriteErrorLine(skin, ex.Message);
+        }
+
+        AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
     }
 }

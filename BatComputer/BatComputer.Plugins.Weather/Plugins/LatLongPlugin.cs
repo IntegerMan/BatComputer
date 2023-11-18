@@ -43,12 +43,14 @@ public class LatLongPlugin : OpenMeteoPlugin
 
         GeoCodingLocation geo = geoCodingResponse.Results.First();
 
+        /*
         Kernel.AddWidget(new LatLongWidget()
         {
             Title = $"{location} Lat / Long",
             Latitude = geo.Latitude,
             Longitude = geo.Longitude,
         });
+        */
 
         return geo.Latitude + "," + geo.Longitude;
     }

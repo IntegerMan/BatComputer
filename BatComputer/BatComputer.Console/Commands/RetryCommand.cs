@@ -8,7 +8,7 @@ public class RetryCommand : AppCommand
 {
     public override async Task ExecuteAsync(AppKernel kernel)
     {
-        string response;
+        string? response;
 
         if (kernel.HasPlanner)
         {
@@ -23,7 +23,7 @@ public class RetryCommand : AppCommand
         OutputHelpers.DisplayChatResponse(App, kernel, response);
     }
 
-    public override string DisplayText => "Repeat Last Request";
+    public override string DisplayText => "Repeat last request";
 
     public override bool CanExecute(AppKernel kernel) => kernel.LastMessage != null;
 

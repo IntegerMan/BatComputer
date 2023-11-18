@@ -176,7 +176,7 @@ public class SessionizePlugin : IDisposable
         if (session == null)
             return $"Could not find a session named '{sessionName}'";
 
-        _kernel.AddWidget(new DataWidget("Session Details", session));
+        // TODO: _kernel.AddWidget(new DataWidget("Session Details", session));
 
         return JsonConvert.SerializeObject(session); // TODO: Maybe not JSON?
     }
@@ -189,7 +189,7 @@ public class SessionizePlugin : IDisposable
         if (speaker == null)
             return $"Could not find a speaker named '{speakerName}'";
 
-        _kernel.AddWidget(new DataWidget("Speaker Details", speaker));
+        // TODO: _kernel.AddWidget(new DataWidget("Speaker Details", speaker));
 
         return JsonConvert.SerializeObject(speaker); // TODO: Maybe not JSON?
     }
@@ -202,9 +202,9 @@ public class SessionizePlugin : IDisposable
         return JsonConvert.SerializeObject(sessions);
     }
 
-    // TODO: A search speakers would be nice
+    // TODO: Probably need a search speakers by name function
 
-    // TODO: A search sessions would be nice
+    // TODO: Probably need a search sessions by name function
 
     public void Dispose()
     {

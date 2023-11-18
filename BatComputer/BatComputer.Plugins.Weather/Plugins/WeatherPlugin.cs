@@ -85,6 +85,8 @@ public class WeatherPlugin : OpenMeteoPlugin
         return (lat, lon);
     }
 
+    /*
+
     [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
     public async Task<string> GetTomorrowWeatherFromLatLong(
         [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
@@ -108,6 +110,7 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         return BuildWeatherDayForecastString(forecast, index);
     }
+    */
 
     private static string BuildWeatherDayForecastString(DailyWeather forecast, int index)
     {
@@ -130,7 +133,7 @@ public class WeatherPlugin : OpenMeteoPlugin
         return sb.ToString();
     }
 
-    [SKFunction, Description("Gets weather information from a latitude and longitude for tomorrow")]
+    [SKFunction, Description("Gets weather information from a latitude and longitude for a given date")]
     public async Task<string> GetDailyWeatherFromLatLong(
         [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong,
         [Description("A string representing a calendar date such as 9/10/80 or 2023-11-13")] string dateStr)
@@ -145,14 +148,25 @@ public class WeatherPlugin : OpenMeteoPlugin
         WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
         DailyWeather forecast = response.Daily!;
 
-        DateTime date = DateTime.Parse(dateStr);
-        string time = date.ToString("yyyy-MM-dd");
+        if (dateStr.Equals("today", StringComparison.OrdinalIgnoreCase))
+        {
+            return BuildWeatherDayForecastString(forecast, 0);
+        }
+        else if (dateStr.Equals("tomorrow", StringComparison.OrdinalIgnoreCase))
+        {
+            return BuildWeatherDayForecastString(forecast, 1);
+        }
+        else
+        {
+            DateTime date = DateTime.Parse(dateStr);
+            string time = date.ToString("yyyy-MM-dd");
 
-        int index = forecast.Time.IndexOf(time);
+            int index = forecast.Time.IndexOf(time);
 
-        return index == -1 
-            ? $"I couldn't get weather forecast information on {dateStr}" 
-            : BuildWeatherDayForecastString(forecast, index);
+            return index == -1
+                ? $"I couldn't get weather forecast information on {dateStr}"
+                : BuildWeatherDayForecastString(forecast, index);
+        }
     }
 
     private static void AddPrecipitationNote(StringBuilder sb, decimal amount, string precipType)

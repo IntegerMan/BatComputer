@@ -14,7 +14,7 @@ public class SemanticQueryCommand : AppCommand
         if (!string.IsNullOrWhiteSpace(prompt))
         {
             ConsolePlanExecutor executor = new(App, kernel);
-            string response = await executor.GetKernelPromptResponseAsync(prompt);
+            string? response = await executor.GetKernelPromptResponseAsync(prompt);
 
             OutputHelpers.DisplayChatResponse(App, kernel, response);
         }

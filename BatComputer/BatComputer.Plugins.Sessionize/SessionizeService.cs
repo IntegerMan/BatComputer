@@ -151,6 +151,10 @@ public class SessionizeService : IDisposable
         return sessions.Select(s => s.Room).Distinct().OrderBy(s => s);
     }
 
+    // TODO: Probably need a search speakers by name function
+
+    // TODO: Probably need a search sessions by name function
+
     public void Dispose()
     {
         _client.Dispose();

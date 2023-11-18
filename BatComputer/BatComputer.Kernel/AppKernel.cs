@@ -1,7 +1,6 @@
 ﻿using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
-using Microsoft.SemanticKernel.Plugins.Core;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.Plugins.Camera;
@@ -44,7 +43,7 @@ public class AppKernel : IAppKernel
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
-        Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
+        // Kernel.ImportFunctions(new ConversationSummaryPlugin(Kernel), "Summary");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
 
         if (settings.SupportsAiServices)
@@ -63,11 +62,8 @@ public class AppKernel : IAppKernel
             Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
 
-        IEnumerable<string> excludedPlugins = ["ConversationSummaryPlugin"];
-        IEnumerable<string> excludedFunctions = [
-                "GetConversationTopics",
-                "GetConversationActionItems"
-            ];
+        IEnumerable<string> excludedPlugins = [];
+        IEnumerable<string> excludedFunctions = [];
 
         Planner = plannerStrategy?.BuildPlanner(Kernel, excludedPlugins, excludedFunctions);
     }
@@ -95,24 +91,18 @@ public class AppKernel : IAppKernel
 
     public BingConnector? WebSearchConnector { get; }
 
-    public bool IsFunctionExcluded(FunctionView _) => false;
-    /* TODO:
-        => Planner == null || 
-            f.PluginName == "SequentialPlanner_Excluded" ||
-            Planner.ExcludedFunctions.Contains(f.Name) ||
-            Planner.ExcludedPlugins.Contains(f.PluginName);
-    */
+    public bool IsFunctionExcluded(FunctionView f) 
+        => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
     
     public bool HasPlanner => Planner != null;
     public string? LastMessage { get; private set; }
     public string? LastGoal { get; private set; }
+    public PlanExecutionResult? LastResult { get; set; }
+
     public Queue<IWidget> Widgets { get; } = new();
     public string SystemText { get; set; } = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
 
-    public void AddWidget(IWidget widget)
-    {
-        Widgets.Enqueue(widget);
-    }
+    public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
     public async Task<Plan> PlanAsync(string userText)
     {
@@ -123,9 +113,11 @@ public class AppKernel : IAppKernel
 
         LastPlan = null;
         LastMessage = null;
+        LastResult = null;
+        LastGoal = userText;
+
         Widgets.Clear();
 
-        LastGoal = userText;
         Plan plan = await Planner!.CreatePlanAsync(userText);
 
         LastPlan = plan;
@@ -140,10 +132,18 @@ public class AppKernel : IAppKernel
         {
             LastPlan = null;
             LastMessage = prompt;
+            LastResult = null;
             LastGoal = null;
             Widgets.Clear();
 
-            return await _chat.GetChatResponse(prompt);
+            string response = await _chat.GetChatResponse(prompt);
+
+            LastResult = new PlanExecutionResult()
+            {
+                Output = response,
+            };
+
+            return response;
         }
         catch (HttpOperationException ex)
         {
