@@ -7,13 +7,11 @@ using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Events;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
-using ChatMessage = Microsoft.SemanticKernel.AI.ChatCompletion.ChatMessage;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -28,10 +26,9 @@ public class AppKernel : IAppKernel
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
-        KernelBuilder builder = new();
-        builder.WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey);
-
-        Kernel = builder.Build();
+        Kernel = new KernelBuilder()
+            .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
+            .Build();
 
         Kernel.FunctionInvoking += OnFunctionInvoking;
         Kernel.FunctionInvoked += OnFunctionInvoked;
@@ -118,6 +115,7 @@ public class AppKernel : IAppKernel
         return plan;
     }
 
+    /*
     internal async Task<string> GetPromptedReplyAsync(string command)
     {
         IChatCompletion completion = Kernel.GetService<IChatCompletion>();
@@ -127,6 +125,7 @@ public class AppKernel : IAppKernel
 
         return chatResult.Content;
     }
+    */
 
     public async Task<PlanExecutionResult> ExecutePlanAsync()
     {

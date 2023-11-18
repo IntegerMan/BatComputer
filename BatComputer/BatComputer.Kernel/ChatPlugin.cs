@@ -1,5 +1,8 @@
 ﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using LLamaSharp.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -13,7 +16,7 @@ public class ChatPlugin
     }
 
     [SKFunction, Description("Sends a question to a large language model as part of a chat traanscript")]
-    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input)
+    public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input, SKContext context)
     {
         string prompt = @$"{_kernel.SystemText}
 
@@ -25,15 +28,23 @@ User: {input}
 ---------------------------------------------
 
 Bot: ";
-        return await _kernel.GetPromptedReplyAsync(prompt);
-    }
+        IChatCompletion? chatService = context.ServiceProvider.GetService<IChatCompletion>();
+        if (chatService == null)
+        {
+            return "No chat completion service is configured.";
+        }
 
-    [SKFunction, Description("Sends a raw prompt to a large language model and returns the response")]
-    public async Task<string> GetPromptResponse([Description("The prompt for the large language model")] string prompt)
-    {
-        return await _kernel.GetPromptedReplyAsync($"{_kernel.SystemText} {prompt}");
-    }
+        ChatRequestSettings settings = new() { ResultsPerPrompt = 1};
+        IReadOnlyList<IChatResult> completions =
+            await chatService.GetChatCompletionsAsync(chatService.CreateNewChat(prompt), settings);
 
-    [SKFunction, Description("Displays a response to the user")]
-    public string DisplayResponse([Description("The response to show to the user")] string response) => response;
+        if (!completions.Any())
+        {
+            return "No chat response was returned";
+        }
+
+        ChatMessage chatMessage = await completions.First().GetChatMessageAsync();
+
+        return chatMessage.Content;
+    }
 }
