@@ -13,6 +13,7 @@ using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
+using ChatMessage = Microsoft.SemanticKernel.AI.ChatCompletion.ChatMessage;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -122,7 +123,7 @@ public class AppKernel : IAppKernel
         IChatCompletion completion = Kernel.GetService<IChatCompletion>();
         ChatHistory chat = completion.CreateNewChat(command);
         IReadOnlyList<IChatResult> result = await completion.GetChatCompletionsAsync(chat);
-        ChatMessageBase chatResult = await result[0].GetChatMessageAsync();
+        ChatMessage chatResult = await result[0].GetChatMessageAsync();
 
         return chatResult.Content;
     }

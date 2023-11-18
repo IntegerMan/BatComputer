@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="FlashCap" Version="1.8.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta6" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.0.0-beta8" />
   </ItemGroup>
 
   <ItemGroup>

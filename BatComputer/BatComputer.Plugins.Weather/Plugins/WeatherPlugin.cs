@@ -146,7 +146,12 @@ public class WeatherPlugin : OpenMeteoPlugin
         (string lat, string lon) = GetLatLongFromString(latLong);
 
         WeatherResponse response = await GetWeatherInformationAsync(lat, lon);
-        DailyWeather forecast = response.Daily!;
+        DailyWeather? forecast = response.Daily;
+
+        if (forecast == null)
+        {
+            return $"Could not get daily weather for lat/long {lat},{lon}";
+        }
 
         if (dateStr.Equals("today", StringComparison.OrdinalIgnoreCase))
         {
@@ -156,9 +161,8 @@ public class WeatherPlugin : OpenMeteoPlugin
         {
             return BuildWeatherDayForecastString(forecast, 1);
         }
-        else
+        else if (DateTime.TryParse(dateStr, out DateTime date))
         {
-            DateTime date = DateTime.Parse(dateStr);
             string time = date.ToString("yyyy-MM-dd");
 
             int index = forecast.Time.IndexOf(time);
@@ -166,6 +170,10 @@ public class WeatherPlugin : OpenMeteoPlugin
             return index == -1
                 ? $"I couldn't get weather forecast information on {dateStr}"
                 : BuildWeatherDayForecastString(forecast, index);
+        } 
+        else
+        {
+            return $"'{dateStr}' could not be interpreted as a date. Expecting a value like '{DateTime.Today.ToShortDateString()}'";
         }
     }
 
