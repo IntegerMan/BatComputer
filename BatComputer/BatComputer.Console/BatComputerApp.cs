@@ -45,7 +45,7 @@ public class BatComputerApp
         }
 
         // Configure the application
-        PlannerStrategy planner = SelectPlanner();
+        PlannerStrategy planner = ChangePlannerCommand.SelectPlanner(Skin);
         using AppKernel appKernel = new(Settings, planner);
 
         // Show plugins now that they're paying attention
@@ -63,21 +63,6 @@ public class BatComputerApp
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program complete[/]");
         return 0;
-    }
-
-    private PlannerStrategy SelectPlanner()
-    {
-        SelectionPrompt<PlannerStrategy> choices = new SelectionPrompt<PlannerStrategy>()
-        .Title($"[{Skin.NormalStyle}]Select a planner[/]")
-        .HighlightStyle(Skin.AccentStyle)
-        .AddChoices([
-            new StepwisePlannerStrategy(),
-            new SequentialPlannerStrategy(),
-            new ActionPlannerStrategy(),
-            new NoPlannerStrategy()
-        ]);
-
-        return AnsiConsole.Prompt(choices);
     }
 
     public Stack<MenuBase> Menus { get; } = new();

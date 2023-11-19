@@ -16,10 +16,10 @@ namespace MattEland.BatComputer.Kernel;
 public class AppKernel : IAppKernel, IDisposable
 {
     private readonly ISKFunction _chat;
+    private Planner? _planner;
     private readonly BatComputerLoggerFactory _loggerFactory;
 
     public IKernel Kernel { get; }
-    public Planner? Planner { get; }
 
     public Plan? LastPlan { get; private set; }
 
@@ -61,10 +61,12 @@ public class AppKernel : IAppKernel, IDisposable
             Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
 
-        IEnumerable<string> excludedPlugins = [];
-        IEnumerable<string> excludedFunctions = [];
+        _planner = plannerStrategy?.BuildPlanner(Kernel);
+    }
 
-        Planner = plannerStrategy?.BuildPlanner(Kernel, excludedPlugins, excludedFunctions);
+    public void SwitchPlanner(PlannerStrategy? plannerStrategy)
+    {
+        _planner = plannerStrategy?.BuildPlanner(Kernel);
     }
 
     public BingConnector? WebSearchConnector { get; }
@@ -90,9 +92,9 @@ public class AppKernel : IAppKernel, IDisposable
         Widgets.Clear();
         _tokenUsage.Clear();
 
-        Plan plan = Planner is null 
+        Plan plan = _planner is null 
             ? new Plan(_chat) 
-            : await Planner.CreatePlanAsync(userText);
+            : await _planner.CreatePlanAsync(userText);
 
         // Ensure the log has fully updated
         _loggerFactory.Flush();
@@ -120,10 +122,7 @@ public class AppKernel : IAppKernel, IDisposable
         return executionResult;
     }
 
-    public void Dispose()
-    {
-        ((IDisposable)_loggerFactory).Dispose();
-    }
+    public void Dispose() => ((IDisposable)_loggerFactory).Dispose();
 
     public void ReportTokenUsage(int promptTokens, int completionTokens)
     {
