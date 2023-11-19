@@ -15,7 +15,10 @@ public class DiagnosticsMenu : MenuBase
             yield return new ConsoleDiagnosticsCommand(App);
             yield return new ShowPlanTreeCommand(App);
             yield return new ShowPlanJsonCommand(App);
-            yield return new SubmenuCommand(App, "Memory", new MemoryMenu(App));
+            if (App.Kernel?.Memory != null)
+            {
+                yield return new SubmenuCommand(App, "Memory", new MemoryMenu(App));
+            }
             yield return new SubmenuCommand(App, "Functions", new FunctionsMenu(App));
             yield return new SubmenuCommand(App, "Widgets", new WidgetsMenu(App));
             yield return new ExitCommand(App, title: "Back");

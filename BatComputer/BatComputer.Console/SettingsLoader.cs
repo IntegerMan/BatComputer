@@ -28,9 +28,12 @@ public static class SettingsLoader
         ReadRequiredSetting(config, skin, "AzureOpenAIKey", v => settings.AzureOpenAiKey = v);
         ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => settings.OpenAiDeploymentName = v);
         ReadOptionalSetting(config, skin, "BingKey", v => settings.BingKey = v);
+        ReadOptionalSetting(config, skin, "EmbeddingCollectionName", v => settings.EmbeddingCollectionName = v);
+        ReadOptionalSetting(config, skin, "EmbeddingDeploymentName", v => settings.EmbeddingDeploymentName = v);
         ReadOptionalSetting(config, skin, "SessionizeToken", v => settings.SessionizeToken = v);
-        ReadOptionalBoolean(config, skin, "SkipCostDisclaimer", v => settings.SkipCostDisclaimer = v, false);
         ReadOptionalSetting(config, skin, "SpeechVoiceName", v => settings.SpeechVoiceName = v!, "en-GB-AlfieNeural");
+        ReadOptionalBoolean(config, skin, "SkipCostDisclaimer", v => settings.SkipCostDisclaimer = v, false);
+        ReadOptionalBoolean(config, skin, "SpeechEnabled", v => settings.IsSpeechEnabled = v, true);
         AnsiConsole.WriteLine();
 
         return settings;

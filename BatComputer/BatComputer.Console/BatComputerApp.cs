@@ -29,6 +29,10 @@ public class BatComputerApp : IDisposable
         {
             new WarningWidget("No Bing Search Key Supplied. Web Search will be disabled.").Render(Skin);
         }
+        if (!Settings.SupportsMemory)
+        {
+            new WarningWidget("No Embeddings Deployment Name or Embeddings Collection Name. Memory will be disabled.").Render(Skin);
+        }
 
         // Warn the user that actual costs may be incurred from using the app
         if (!Settings.SkipCostDisclaimer)

@@ -29,7 +29,7 @@ public class ShowMemoryCommand : AppCommand
         AnsiConsole.WriteLine();
     }
 
-    public override string DisplayText => "Show Memory";
+    public override string DisplayText => "Show Memories";
 
     public override bool CanExecute(AppKernel kernel) => kernel?.Memory != null;
 }

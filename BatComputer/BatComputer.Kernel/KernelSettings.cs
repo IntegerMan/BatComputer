@@ -56,7 +56,11 @@ public class KernelSettings {
     public bool SupportsSearch => !string.IsNullOrWhiteSpace(BingKey);
     public bool SupportsAiServices => !string.IsNullOrWhiteSpace(AzureAiServicesEndpoint) && !string.IsNullOrWhiteSpace(AzureAiServicesKey) && !string.IsNullOrWhiteSpace(AzureAiServicesRegion);
     public bool SupportsSessionize => !string.IsNullOrWhiteSpace(SessionizeToken);
+    public bool SupportsMemory => !string.IsNullOrWhiteSpace(EmbeddingCollectionName) && !string.IsNullOrWhiteSpace(EmbeddingDeploymentName);
 
     public bool SkipCostDisclaimer { get; set; }
+    public bool IsSpeechEnabled { get; set; }
+    public string? EmbeddingCollectionName { get; set; }
+    public string? EmbeddingDeploymentName { get; set; }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

@@ -13,6 +13,7 @@ public class MemoryMenu : MenuBase
         get
         {
             yield return new ShowMemoryCommand(App);
+            yield return new AddMemoryCommand(App);
 
             yield return new ExitCommand(App, title: "Back");
         }

@@ -38,7 +38,7 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
-            .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", settings.AzureOpenAiKey)
+            .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
             .Build();
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
@@ -49,12 +49,16 @@ public class AppKernel : IAppKernel, IDisposable
         _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         // Memory is important for providing additional context
-        Memory = new MemoryBuilder()
-            .WithLoggerFactory(_loggerFactory)
-            .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", settings.AzureOpenAiKey) // TODO: Local embedding would be better
-            .WithMemoryStore(new VolatileMemoryStore())
-            .Build();
-        Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
+        if (settings.SupportsMemory)
+        {
+            MemoryCollectionName = settings.EmbeddingCollectionName;
+            Memory = new MemoryBuilder()
+                .WithLoggerFactory(_loggerFactory)
+                .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
+                .WithMemoryStore(new VolatileMemoryStore())
+                .Build();
+            Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
+        }
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
@@ -114,6 +118,7 @@ public class AppKernel : IAppKernel, IDisposable
 
     public Queue<IWidget> Widgets { get; } = new();
     public string SystemText { get; set; } = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
+    public string? MemoryCollectionName { get; } = "BatComputer";
 
     public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
@@ -126,8 +131,8 @@ public class AppKernel : IAppKernel, IDisposable
         Widgets.Clear();
         _tokenUsage.Clear();
 
-        Plan plan = _planner is null 
-            ? new Plan(_chat) 
+        Plan plan = _planner is null
+            ? new Plan(_chat)
             : await _planner.CreatePlanAsync(userText);
 
         // Ensure the log has fully updated
