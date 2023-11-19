@@ -7,6 +7,7 @@ public class CurrentWeatherWidget : WidgetBase
 {
     public string? Conditions { get; set; } = "Not detected";
     public string Temperature { get; set; } = "0\u00b0F";
+    public string ApparentTemperature { get; set; } = "0\u00b0F";
     [Description("Cloud Cover")] public string CloudCover { get; set; } = "0%";
 
     public bool IsDay { get; set; }
@@ -22,5 +23,6 @@ public class CurrentWeatherWidget : WidgetBase
         CloudCover = "42%";
         Conditions = "Partly Cloudy";
         Temperature = "28\u00b0F";
+        ApparentTemperature = "26\u00b0F";
     }
 }

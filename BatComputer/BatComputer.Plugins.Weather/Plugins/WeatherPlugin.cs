@@ -2,6 +2,7 @@
 using System.Text;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Plugins.Weather.Models;
+using MattEland.BatComputer.Plugins.Weather.Widgets;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 
@@ -13,8 +14,7 @@ public class WeatherPlugin : OpenMeteoPlugin
     {
     }
 
-    /*
-    [SKFunction, Description("Gets current weather information from a latitude and longitude")]
+    [SKFunction, Description("Gets current weather conditions from a latitude and longitude. This should not be used for predicting weather.")]
     public async Task<string> GetCurrentWeatherFromLatLong(
         [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
     {
@@ -37,8 +37,9 @@ public class WeatherPlugin : OpenMeteoPlugin
         CurrentWeatherWidget widget = new()
         {
             Title = "Current Weather",
-            Temperature = $"{current.Temperature}\u00b0F",
-            CloudCover = $"{(current.CloudCoverPercent)} %",
+            Temperature = $"{current.Temperature}°F",
+            ApparentTemperature = $"{current.ApparentTemperature}°F",
+            CloudCover = $"{current.CloudCoverPercent} %",
             IsDay = current.IsDay,
             Rainfall = current.Rain > 0 ? $"{current.Rain:0.##} inches" : "None",
             Snowfall = current.Snowfall > 0 ? $"{current.Snowfall:0.##} inches" : "None"
@@ -56,7 +57,7 @@ public class WeatherPlugin : OpenMeteoPlugin
             sb.Append("It is dark outside. ");
         }
 
-        sb.Append($"The current temperature feels like {current.ApparentTemperature}\u00b0F. " +
+        sb.Append($"The current temperature is {current.Temperature}°F and feels like {current.ApparentTemperature}°F. " +
             $"Cloud cover is currently {current.CloudCoverPercent} %");
 
         if (current.Snowfall > 0)
@@ -76,7 +77,6 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         return sb.ToString();
     }
-    */
 
     private static (string lat, string lon) GetLatLongFromString(string latLong)
     {

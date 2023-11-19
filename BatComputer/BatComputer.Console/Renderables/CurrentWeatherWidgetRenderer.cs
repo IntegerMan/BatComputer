@@ -14,6 +14,7 @@ public class CurrentWeatherWidgetRenderer : WidgetRenderer<CurrentWeatherWidget>
             .HideHeaders()
             .AddRow($"[{skin.NormalStyle}]Conditions:[/]", $"{widget.Conditions ?? "None"}, {(widget.IsDay ? "Day" : "Night")}")
             .AddRow($"[{skin.NormalStyle}]Temperature:[/]", widget.Temperature)
+            .AddRow($"[{skin.NormalStyle}]Feels Like:[/]", widget.ApparentTemperature)
             .AddRow($"[{skin.NormalStyle}]Clouds:[/]", widget.CloudCover)
             .AddRow($"[{skin.NormalStyle}]Rainfall:[/]", widget.Rainfall)
             .AddRow($"[{skin.NormalStyle}]Snowfall:[/]", widget.Snowfall)

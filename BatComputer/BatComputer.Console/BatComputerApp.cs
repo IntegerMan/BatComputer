@@ -46,7 +46,7 @@ public class BatComputerApp
 
         // Configure the application
         PlannerStrategy planner = SelectPlanner();
-        AppKernel appKernel = new(Settings, planner);
+        using AppKernel appKernel = new(Settings, planner);
 
         // Show plugins now that they're paying attention
         OutputHelpers.DisplayPendingWidgets(this, appKernel);
@@ -102,8 +102,5 @@ public class BatComputerApp
         }
     }
 
-    public Task SpeakAsync(string message)
-    {
-        return Speech?.SpeakAsync(message) ?? Task.CompletedTask;
-    }
+    public Task SpeakAsync(string message) => Speech?.SpeakAsync(message) ?? Task.CompletedTask;
 }

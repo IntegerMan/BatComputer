@@ -1,5 +1,4 @@
-﻿using Azure.AI.OpenAI;
-using Microsoft.SemanticKernel;
+﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Widgets;
@@ -7,19 +6,17 @@ using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
-using Microsoft.SemanticKernel.Events;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class AppKernel : IAppKernel
+public class AppKernel : IAppKernel, IDisposable
 {
     private readonly ISKFunction _chat;
+    private readonly BatComputerLoggerFactory _loggerFactory;
 
     public IKernel Kernel { get; }
     public Planner? Planner { get; }
@@ -28,10 +25,10 @@ public class AppKernel : IAppKernel
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
-        BatComputerLoggerFactory loggerFactory = new(this);
+        _loggerFactory = new BatComputerLoggerFactory(this);
 
         Kernel = new KernelBuilder()
-            .WithLoggerFactory(loggerFactory)
+            .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
             /*
             .WithAIService<IChatCompletion>(serviceId: null, 
@@ -39,9 +36,6 @@ public class AppKernel : IAppKernel
                     loggerFactory: loggerFactory))
             */
             .Build();
-
-        Kernel.FunctionInvoking += OnFunctionInvoking;
-        Kernel.FunctionInvoked += OnFunctionInvoked;
 
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
@@ -73,31 +67,6 @@ public class AppKernel : IAppKernel
         Planner = plannerStrategy?.BuildPlanner(Kernel, excludedPlugins, excludedFunctions);
     }
 
-    private void OnFunctionInvoking(object? sender, FunctionInvokingEventArgs e)
-    {
-        //Console.WriteLine($"Function invoking {e.FunctionView.Name}");
-    }
-
-    private void OnFunctionInvoked(object? sender, FunctionInvokedEventArgs e)
-    {
-        //Console.WriteLine($"Function invoked {e.FunctionView.Name}");
-
-        if (!e.Metadata.TryGetValue("ModelResults", out object? value))
-            return;
-
-        IReadOnlyCollection<ModelResult>? modelResults = value as IReadOnlyCollection<ModelResult>;
-        CompletionsUsage? usage = modelResults?.First().GetOpenAIChatResult().Usage;
-
-        if (usage is { TotalTokens: > 0 })
-        {
-            string stepName = e.FunctionView.Name.StartsWith("func", StringComparison.OrdinalIgnoreCase)
-                    ? e.FunctionView.PluginName.Replace("_Excluded", "", StringComparison.OrdinalIgnoreCase)
-                    : e.FunctionView.Name;
-
-            AddWidget(new TokenUsageWidget(usage.PromptTokens, usage.CompletionTokens, $"{stepName} Token Usage"));
-        }
-    }
-
     public BingConnector? WebSearchConnector { get; }
 
     public bool IsFunctionExcluded(FunctionView f)
@@ -119,10 +88,14 @@ public class AppKernel : IAppKernel
         LastResult = null;
         LastGoal = userText;
         Widgets.Clear();
+        _tokenUsage.Clear();
 
         Plan plan = Planner is null 
             ? new Plan(_chat) 
             : await Planner.CreatePlanAsync(userText);
+
+        // Ensure the log has fully updated
+        _loggerFactory.Flush();
 
         LastPlan = plan;
         return plan;
@@ -138,7 +111,25 @@ public class AppKernel : IAppKernel
         FunctionResult result = await LastPlan.InvokeAsync(Kernel);
         PlanExecutionResult executionResult = result.ToExecutionResult(LastPlan);
 
+        // Ensure the log has fully updated
+        _loggerFactory.Flush();
+
+        AddWidget(new TokenUsageWidget(_tokenUsage));
+
         LastResult = executionResult;
         return executionResult;
     }
+
+    public void Dispose()
+    {
+        ((IDisposable)_loggerFactory).Dispose();
+    }
+
+    public void ReportTokenUsage(int promptTokens, int completionTokens)
+    {
+        _tokenUsage.Add(new TokenUsage(promptTokens, TokenUsageType.Prompt));
+        _tokenUsage.Add(new TokenUsage(completionTokens, TokenUsageType.Completion));
+    }
+
+    private readonly List<TokenUsage> _tokenUsage = new();
 }

@@ -1,26 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace MattEland.BatComputer.Kernel;
 
 public class BatComputerLoggerFactory : ILoggerFactory
 {
     private readonly AppKernel _app;
+    private readonly BatComputerLogger _logger;
 
     public BatComputerLoggerFactory(AppKernel app)
     {
         _app = app;
+        _logger = new BatComputerLogger(app);
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() => _logger.Dispose();
 
-    public ILogger CreateLogger(string categoryName) => new BatComputerLogger(_app);
+    public ILogger CreateLogger(string categoryName) => _logger;
 
     public void AddProvider(ILoggerProvider provider) => throw new NotSupportedException();
+
+    public void Flush() => _logger.Flush();
 }
