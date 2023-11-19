@@ -30,11 +30,6 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
-            /*
-            .WithAIService<IChatCompletion>(serviceId: null, 
-                    instance: new AzureOpenAIChatCompletion(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey, 
-                    loggerFactory: loggerFactory))
-            */
             .Build();
 
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
@@ -42,7 +37,7 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
-        Kernel.ImportFunctions(new ChatPlugin(this), "Chat");
+        Kernel.ImportFunctions(new ChatPlugin(), "Chat");
         _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         if (settings.SupportsAiServices)

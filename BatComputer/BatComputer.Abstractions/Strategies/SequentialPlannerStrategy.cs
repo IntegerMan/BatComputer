@@ -6,8 +6,8 @@ namespace MattEland.BatComputer.Abstractions.Strategies;
 public class SequentialPlannerStrategy : PlannerStrategy
 {
     public override Planner? BuildPlanner(IKernel kernel, 
-        IEnumerable<string> excludedPlugins, 
-        IEnumerable<string> excludedFunctions)
+        IEnumerable<string>? excludedPlugins, 
+        IEnumerable<string>? excludedFunctions)
     {
         // Configure the planner
         SequentialPlannerConfig config = new();

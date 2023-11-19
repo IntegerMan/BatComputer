@@ -8,33 +8,21 @@ namespace MattEland.BatComputer.Kernel;
 
 public class ChatPlugin
 {
-    private readonly AppKernel _kernel;
-
-    public ChatPlugin(AppKernel kernel)
-    {
-        _kernel = kernel;
-    }
-
     [SKFunction, Description("Sends a question to a large language model as part of a chat traanscript")]
     public async Task<string> GetChatResponse([Description("The text the user typed in with their query")] string input, SKContext context)
     {
-        string prompt = @$"{_kernel.SystemText}
+        return await GetPromptedReply(input, context);
+    }
 
-Here is a sample chat transcript:
-
-Bot: How can I help you?
-User: {input}
-
----------------------------------------------
-
-Bot: ";
+    private static async Task<string> GetPromptedReply(string prompt, SKContext context)
+    {
         IChatCompletion? chatService = context.ServiceProvider.GetService<IChatCompletion>();
         if (chatService == null)
         {
             return "No chat completion service is configured.";
         }
 
-        ChatRequestSettings settings = new() { ResultsPerPrompt = 1};
+        ChatRequestSettings settings = new() { ResultsPerPrompt = 1 };
         IReadOnlyList<IChatResult> completions =
             await chatService.GetChatCompletionsAsync(chatService.CreateNewChat(prompt), settings);
 
@@ -47,4 +35,7 @@ Bot: ";
 
         return chatMessage.Content;
     }
+
+    [SKFunction, Description("Displays a response to the user")]
+    public string DisplayResponse([Description("The response to show to the user")] string response) => response;
 }

@@ -5,7 +5,9 @@ namespace MattEland.BatComputer.Abstractions.Strategies;
 
 public class StepwisePlannerStrategy : PlannerStrategy
 {
-    public override Planner? BuildPlanner(IKernel kernel, IEnumerable<string> excludedPlugins, IEnumerable<string> excludedFunctions)
+    public override Planner? BuildPlanner(IKernel kernel, 
+        IEnumerable<string>? excludedPlugins, 
+        IEnumerable<string>? excludedFunctions)
     {
         StepwisePlannerConfig config = new();
 

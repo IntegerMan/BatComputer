@@ -5,8 +5,8 @@ namespace MattEland.BatComputer.Abstractions.Strategies;
 public class NoPlannerStrategy : PlannerStrategy
 {
     public override Planner? BuildPlanner(IKernel kernel,
-        IEnumerable<string> excludedPlugins,
-        IEnumerable<string> excludedFunctions)
+        IEnumerable<string>? excludedPlugins,
+        IEnumerable<string>? excludedFunctions)
     {
         return null;
     }

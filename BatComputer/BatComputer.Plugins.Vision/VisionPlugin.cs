@@ -21,11 +21,11 @@ public class VisionPlugin
     }
 
     [SKFunction, Description("Analyzes an image from its path on disk and returns a list of detected object representing what's in the image. The resulting string will need to be summarized.")]
-    public async Task<string> AnalyzeDiskImageAsync(string filePath)
+    public async Task<string> AnalyzeDiskImageAsync([Description("The location of the file on disk. Like C:/dev/image.png")]string filePath)
     {
         if (!File.Exists(filePath))
         {
-            return $"I couldn't find an image at file '{filePath}'";
+            return $"I couldn't find file '{filePath}'";
         }
 
         try
