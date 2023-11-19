@@ -1,20 +1,21 @@
-using BatComputer.Speech;
+using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.Abstractions.Widgets;
+using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Commands;
 using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.ConsoleApp.Menus;
-using MattEland.BatComputer.Kernel;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.ConsoleApp.Skins;
+using MattEland.BatComputer.Speech;
 using Spectre.Console;
-using MattEland.BatComputer.Abstractions.Strategies;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
-public class BatComputerApp
+public class BatComputerApp : IDisposable
 {
     public ConsoleSkin Skin { get; set; } = new BatComputerSkin();
+    public AppKernel? Kernel { get; private set; }
 
     public async Task<int> RunAsync()
     {
@@ -49,18 +50,18 @@ public class BatComputerApp
 
         // Configure the application
         PlannerStrategy planner = ChangePlannerCommand.SelectPlanner(Skin);
-        using AppKernel appKernel = new(Settings, planner);
+        Kernel = new(Settings, planner);
 
         // Show plugins now that they're paying attention
-        OutputHelpers.DisplayPendingWidgets(this, appKernel);
+        OutputHelpers.DisplayPendingWidgets(this, Kernel);
         AnsiConsole.WriteLine();
-        appKernel.RenderKernelPluginsChart(Skin);
+        Kernel.RenderKernelPluginsChart(Skin);
         AnsiConsole.WriteLine();
 
         // Primary loop
         AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]System Ready[/]");
         Menus.Push(new RootMenu(this));
-        await RunMainLoopAsync(appKernel);
+        await RunMainLoopAsync();
 
         // Indicate success on exit (for a fun time, ask me why I always log when a program completes)
         AnsiConsole.WriteLine();
@@ -72,23 +73,29 @@ public class BatComputerApp
     public KernelSettings Settings { get; } = new();
     public SpeechProvider? Speech { get; private set; }
 
-    private async Task RunMainLoopAsync(AppKernel appKernel)
+    private async Task RunMainLoopAsync()
     {
         AnsiConsole.WriteLine();
 
-        while (Menus.TryPeek(out MenuBase? activeMenu))
+        while (Menus.TryPeek(out MenuBase? activeMenu) && Kernel != null)
         {
             SelectionPrompt<AppCommand> choices = new SelectionPrompt<AppCommand>()
                     .Title($"[{Skin.NormalStyle}]Select an action[/]")
                     .HighlightStyle(Skin.AccentStyle)
-                    .AddChoices(activeMenu.Commands.Where(c => c.CanExecute(appKernel)))
+                    .AddChoices(activeMenu.Commands.Where(c => c.CanExecute(Kernel)))
                     .UseConverter(c => c.DisplayText);
 
             AppCommand choice = AnsiConsole.Prompt(choices);
 
-            await choice.ExecuteAsync(appKernel);
+            await choice.ExecuteAsync(Kernel);
         }
     }
 
     public Task SpeakAsync(string message) => Speech?.SpeakAsync(message) ?? Task.CompletedTask;
+
+    public void Dispose()
+    {
+        Kernel?.Dispose();
+        Speech?.Dispose();
+    }
 }

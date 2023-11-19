@@ -1,7 +1,6 @@
-﻿
-using Microsoft.CognitiveServices.Speech;
+﻿using Microsoft.CognitiveServices.Speech;
 
-namespace BatComputer.Speech;
+namespace MattEland.BatComputer.Speech;
 
 public class SpeechProvider : IDisposable
 {

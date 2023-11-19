@@ -11,7 +11,7 @@ internal class Program {
             Console.OutputEncoding = Encoding.UTF8;
             Console.InputEncoding = Encoding.UTF8;
 
-            BatComputerApp app = new();
+            using BatComputerApp app = new();
             return await app.RunAsync();
         }
         catch (Exception ex) {
