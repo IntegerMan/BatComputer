@@ -26,6 +26,7 @@ public class ChangePlannerCommand : AppCommand
         .Title($"[{skin.NormalStyle}]Select a planner[/]")
         .HighlightStyle(skin.AccentStyle)
         .AddChoices([
+            new FunctionCallingStepwisePlannerStrategy(),
             new StepwisePlannerStrategy(),
             new SequentialPlannerStrategy(),
             new ActionPlannerStrategy(),
