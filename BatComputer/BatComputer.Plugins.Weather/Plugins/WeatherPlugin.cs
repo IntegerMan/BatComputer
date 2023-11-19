@@ -2,7 +2,6 @@
 using System.Text;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Plugins.Weather.Models;
-using MattEland.BatComputer.Plugins.Weather.Widgets;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 
@@ -14,6 +13,7 @@ public class WeatherPlugin : OpenMeteoPlugin
     {
     }
 
+    /*
     [SKFunction, Description("Gets current weather information from a latitude and longitude")]
     public async Task<string> GetCurrentWeatherFromLatLong(
         [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong)
@@ -76,6 +76,7 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         return sb.ToString();
     }
+    */
 
     private static (string lat, string lon) GetLatLongFromString(string latLong)
     {
@@ -136,7 +137,7 @@ public class WeatherPlugin : OpenMeteoPlugin
     [SKFunction, Description("Gets weather information from a latitude and longitude for a given date")]
     public async Task<string> GetDailyWeatherFromLatLong(
         [Description("The latitude and longitude. Formatted like: 39.961,-82.998 where 39.961 is the latitude and -82.998 is the longitude. This cannot be a zip code or city name.")] string latLong,
-        [Description("A string representing a calendar date such as 9/10/80 or 2023-11-13")] string dateStr)
+        [Description("A string representing a calendar date such as 9/10/80 or 2023-11-13 or today or tomorrow")] string dateStr)
     {
         if (!latLong.Contains(','))
         {
@@ -157,11 +158,13 @@ public class WeatherPlugin : OpenMeteoPlugin
         {
             return BuildWeatherDayForecastString(forecast, 0);
         }
-        else if (dateStr.Equals("tomorrow", StringComparison.OrdinalIgnoreCase))
+
+        if (dateStr.Equals("tomorrow", StringComparison.OrdinalIgnoreCase))
         {
             return BuildWeatherDayForecastString(forecast, 1);
         }
-        else if (DateTime.TryParse(dateStr, out DateTime date))
+
+        if (DateTime.TryParse(dateStr, out DateTime date))
         {
             string time = date.ToString("yyyy-MM-dd");
 
@@ -170,11 +173,9 @@ public class WeatherPlugin : OpenMeteoPlugin
             return index == -1
                 ? $"I couldn't get weather forecast information on {dateStr}"
                 : BuildWeatherDayForecastString(forecast, index);
-        } 
-        else
-        {
-            return $"'{dateStr}' could not be interpreted as a date. Expecting a value like '{DateTime.Today.ToShortDateString()}'";
         }
+
+        return $"'{dateStr}' could not be interpreted as a date. Expecting a value like '{DateTime.Today.ToShortDateString()}'";
     }
 
     private static void AddPrecipitationNote(StringBuilder sb, decimal amount, string precipType)
@@ -199,6 +200,8 @@ public class WeatherPlugin : OpenMeteoPlugin
 
         return response;
     }
+
+    // TODO: There's probably a library of images for these weather codes that I could use
 
     private static string? CurrentWeatherCode(int weatherCode) 
         => weatherCode switch

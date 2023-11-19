@@ -12,6 +12,8 @@ using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -26,8 +28,16 @@ public class AppKernel : IAppKernel
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
+        BatComputerLoggerFactory loggerFactory = new(this);
+
         Kernel = new KernelBuilder()
+            .WithLoggerFactory(loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
+            /*
+            .WithAIService<IChatCompletion>(serviceId: null, 
+                    instance: new AzureOpenAIChatCompletion(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey, 
+                    loggerFactory: loggerFactory))
+            */
             .Build();
 
         Kernel.FunctionInvoking += OnFunctionInvoking;
@@ -65,10 +75,13 @@ public class AppKernel : IAppKernel
 
     private void OnFunctionInvoking(object? sender, FunctionInvokingEventArgs e)
     {
+        //Console.WriteLine($"Function invoking {e.FunctionView.Name}");
     }
 
     private void OnFunctionInvoked(object? sender, FunctionInvokedEventArgs e)
     {
+        //Console.WriteLine($"Function invoked {e.FunctionView.Name}");
+
         if (!e.Metadata.TryGetValue("ModelResults", out object? value))
             return;
 
@@ -114,18 +127,6 @@ public class AppKernel : IAppKernel
         LastPlan = plan;
         return plan;
     }
-
-    /*
-    internal async Task<string> GetPromptedReplyAsync(string command)
-    {
-        IChatCompletion completion = Kernel.GetService<IChatCompletion>();
-        ChatHistory chat = completion.CreateNewChat(command);
-        IReadOnlyList<IChatResult> result = await completion.GetChatCompletionsAsync(chat);
-        ChatMessage chatResult = await result[0].GetChatMessageAsync();
-
-        return chatResult.Content;
-    }
-    */
 
     public async Task<PlanExecutionResult> ExecutePlanAsync()
     {

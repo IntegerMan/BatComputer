@@ -37,10 +37,6 @@ public class BatComputerApp
             return 0;
         }
 
-        // Configure the application
-        PlannerStrategy planner = SelectPlanner();
-        AppKernel appKernel = new(Settings, planner);
-
         // Greet the user and set up speech if it's configured
         if (Settings.SupportsAiServices)
         {
@@ -48,7 +44,12 @@ public class BatComputerApp
             _ = Speech.SpeakAsync($"Welcome to {Skin.AppNameWithPrefix}");
         }
 
+        // Configure the application
+        PlannerStrategy planner = SelectPlanner();
+        AppKernel appKernel = new(Settings, planner);
+
         // Show plugins now that they're paying attention
+        OutputHelpers.DisplayPendingWidgets(this, appKernel);
         AnsiConsole.WriteLine();
         appKernel.RenderKernelPluginsChart(Skin);
         AnsiConsole.WriteLine();

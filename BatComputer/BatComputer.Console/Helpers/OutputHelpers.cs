@@ -20,11 +20,7 @@ public static class OutputHelpers
 
     public static void DisplayChatResponse(BatComputerApp app, IAppKernel kernel, string? chatResponse)
     {
-        while (kernel.Widgets.Any())
-        {
-            IWidget widget = kernel.Widgets.Dequeue();
-            widget.Render(app.Skin);
-        }
+        DisplayPendingWidgets(app, kernel);
 
         if (string.IsNullOrWhiteSpace(chatResponse))
         {
@@ -35,6 +31,15 @@ public static class OutputHelpers
         AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
         app.SpeakAsync(chatResponse);
         AnsiConsole.WriteLine();
+    }
+
+    public static void DisplayPendingWidgets(BatComputerApp app, IAppKernel kernel)
+    {
+        while (kernel.Widgets.Any())
+        {
+            IWidget widget = kernel.Widgets.Dequeue();
+            widget.Render(app.Skin);
+        }
     }
 
     public static void Render(this IWidget widget, ConsoleSkin skin)
