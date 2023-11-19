@@ -19,7 +19,6 @@ public class AddMemoryCommand : AppCommand
             string description = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Description:[/]");
 
             string result = "";
-
             await AnsiConsole.Status().StartAsync($"Saving memory...", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
@@ -27,7 +26,7 @@ public class AddMemoryCommand : AppCommand
             });
 
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Added memory[/] [{Skin.AccentStyle}]{Markup.Escape(result)}[/]");
+            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Added memory[/] {Markup.Escape(result)}");
             AnsiConsole.WriteLine();
         }
         catch (Exception ex)
