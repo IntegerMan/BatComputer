@@ -25,20 +25,29 @@ public class AppKernel : IAppKernel, IDisposable
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
+        // This logger helps get accurate events from planners as not all planners tell the kernel when they incur token costs
         _loggerFactory = new BatComputerLoggerFactory(this);
 
+        // Build and configure the kernel
+        // TODO: Widget logic can probably move into an attached service
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
             .Build();
 
+        // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
+        _planner = plannerStrategy?.BuildPlanner(Kernel);
+
+        // Chat plugin is core and should always be available
+        Kernel.ImportFunctions(new ChatPlugin(), "Chat");
+        _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
+
+        // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
-        Kernel.ImportFunctions(new ChatPlugin(), "Chat");
-        _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         if (settings.SupportsAiServices)
         {
@@ -47,24 +56,20 @@ public class AppKernel : IAppKernel, IDisposable
 
         if (settings.SupportsSearch)
         {
-            WebSearchConnector = new BingConnector(settings.BingKey!);
-            Kernel.ImportFunctions(new WebSearchEnginePlugin(WebSearchConnector), "Search");
+            var searchConnector = new BingConnector(settings.BingKey!);
+            Kernel.ImportFunctions(new WebSearchEnginePlugin(searchConnector), "Search");
         }
 
         if (settings.SupportsSessionize)
         {
             Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
-
-        _planner = plannerStrategy?.BuildPlanner(Kernel);
     }
 
     public void SwitchPlanner(PlannerStrategy? plannerStrategy)
     {
         _planner = plannerStrategy?.BuildPlanner(Kernel);
     }
-
-    public BingConnector? WebSearchConnector { get; }
 
     public bool IsFunctionExcluded(FunctionView f)
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
