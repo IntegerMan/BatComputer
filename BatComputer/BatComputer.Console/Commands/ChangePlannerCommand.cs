@@ -35,7 +35,7 @@ public class ChangePlannerCommand : AppCommand
         return AnsiConsole.Prompt(choices);
     }
 
-    public override string DisplayText => "Change Planner";
+    public override string DisplayText => "Change Planner…";
 
     public ChangePlannerCommand(BatComputerApp app) : base(app)
     {

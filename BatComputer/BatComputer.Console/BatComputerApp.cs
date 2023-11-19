@@ -30,11 +30,14 @@ public class BatComputerApp
         }
 
         // Warn the user that actual costs may be incurred from using the app
-        new InfoWidget("Disclaimer", "This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
-        if (!AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
+        if (!Settings.SkipCostDisclaimer)
         {
-            AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program terminating[/]");
-            return 0;
+            new InfoWidget("Disclaimer", "This app uses chat, text completions, vision, speech, search, and other features that have costs associated with them. The developer will not be responsible for costs resulting from its usage.").Render(Skin);
+            if (!AnsiConsole.Confirm("Do you agree to these terms and wish to continue?"))
+            {
+                AnsiConsole.MarkupLine($"[{Skin.SuccessStyle}]Program terminating[/]");
+                return 0;
+            }
         }
 
         // Greet the user and set up speech if it's configured

@@ -29,6 +29,7 @@ public static class SettingsLoader
         ReadRequiredSetting(config, skin, "OpenAIDeploymentName", v => settings.OpenAiDeploymentName = v);
         ReadOptionalSetting(config, skin, "BingKey", v => settings.BingKey = v);
         ReadOptionalSetting(config, skin, "SessionizeToken", v => settings.SessionizeToken = v);
+        ReadOptionalBoolean(config, skin, "SkipCostDisclaimer", v => settings.SkipCostDisclaimer = v, false);
         ReadOptionalSetting(config, skin, "SpeechVoiceName", v => settings.SpeechVoiceName = v!, "en-GB-AlfieNeural");
         AnsiConsole.WriteLine();
 
@@ -47,9 +48,16 @@ public static class SettingsLoader
             AnsiConsole.MarkupLine($"[{skin.ErrorStyle}]{skin.ErrorEmoji} Could not read the config value for {settingName}[/]");
         }
     }
+
     private static void ReadOptionalSetting(IConfiguration config, ConsoleSkin skin, string settingName, Action<string?> applyAction, string? defaultValue = null)
     {
         string? value = config[settingName];
         applyAction(string.IsNullOrEmpty(value) ? defaultValue : value);
+    }
+
+    private static void ReadOptionalBoolean(IConfiguration config, ConsoleSkin skin, string settingName, Action<bool> applyAction, bool defaultValue = false)
+    {
+        string? value = config[settingName];
+        applyAction(string.IsNullOrEmpty(value) ? defaultValue : bool.Parse(value));
     }
 }
