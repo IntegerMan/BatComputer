@@ -1,13 +1,14 @@
 ﻿using Microsoft.SemanticKernel.Planners;
+using Microsoft.SemanticKernel.Planners.Handlebars;
 using Microsoft.SemanticKernel.Planning;
 
 namespace MattEland.BatComputer.Abstractions.Strategies;
 
-public class SequentialPlannerWrapper : Planner
+public class HandlebarsPlannerWrapper : Planner
 {
-    private readonly SequentialPlanner _planner;
+    private readonly HandlebarsPlanner _planner;
 
-    public SequentialPlannerWrapper(SequentialPlanner planner) 
+    public HandlebarsPlannerWrapper(HandlebarsPlanner planner)
     {
         _planner = planner;
     }

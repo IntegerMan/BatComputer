@@ -7,12 +7,12 @@ public class ShowPlanTreeCommand : AppCommand
 {
     public override Task ExecuteAsync(AppKernel kernel)
     {
-        kernel.LastPlan!.RenderTree(Skin);
+        kernel.LastPlan!.Plan!.RenderTree(Skin);
 
         return Task.CompletedTask;
     }
 
-    public override bool CanExecute(AppKernel kernel) => kernel.LastPlan != null;
+    public override bool CanExecute(AppKernel kernel) => kernel.LastPlan?.Plan != null;
 
     public ShowPlanTreeCommand(BatComputerApp app) : base(app)
     {

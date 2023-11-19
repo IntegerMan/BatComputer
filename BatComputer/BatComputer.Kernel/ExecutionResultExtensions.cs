@@ -2,30 +2,26 @@
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MattEland.BatComputer.Kernel;
 
 public static class ExecutionResultExtensions
 {
-    public static PlanExecutionResult ToExecutionResult(this FunctionResult result, Plan plan)
+    public static PlanExecutionResult ToExecutionResult(this FunctionResult result, PlanWrapper plan)
     {
         PlanExecutionResult executionResult = new();
 
-        return PopulateExecutionResult(executionResult, result, plan);
+        return PopulateExecutionResult(executionResult, result, plan.Plan);
     }
 
-    private static PlanExecutionResult PopulateExecutionResult(PlanExecutionResult executionResult, FunctionResult result, Plan plan)
+    private static PlanExecutionResult PopulateExecutionResult(PlanExecutionResult executionResult, FunctionResult result, Plan? plan)
     {
         if (result.TryGetMetadataValue("stepCount", out string stepCount))
         {
             executionResult.StepsCount = int.Parse(stepCount);
         }
-        else if (plan.Steps != null && plan.Steps.Any())
+        else if (plan?.Steps != null && plan.Steps.Any())
         {
             executionResult.StepsCount = plan.Steps.Count;
         }
@@ -34,7 +30,7 @@ public static class ExecutionResultExtensions
         {
             executionResult.Summary = DeserializeStepsTaken(json);
         }
-        else if (plan.Steps != null && plan.Steps.Any())
+        else if (plan?.Steps != null && plan.Steps.Any())
         {
             executionResult.Summary = plan.Steps.Select(step => new StepSummary
                 {
@@ -49,7 +45,7 @@ public static class ExecutionResultExtensions
         {
             executionResult.FunctionsUsed = functionCount;
         }
-        else if (plan.Steps != null && plan.Steps.Any())
+        else if (plan?.Steps != null && plan.Steps.Any())
         {
             executionResult.FunctionsUsed = plan.Steps.Count.ToString();
         }

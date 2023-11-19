@@ -1,5 +1,4 @@
 ﻿using Microsoft.SemanticKernel.Planners;
-using Microsoft.SemanticKernel.Planning;
 
 namespace MattEland.BatComputer.Abstractions.Strategies;
 
@@ -12,6 +11,6 @@ public class StepwisePlannerWrapper : Planner
         _planner = planner;
     }
 
-    public override Task<Plan> CreatePlanAsync(string goal) 
-        => Task.FromResult(_planner.CreatePlan(goal));
+    public override Task<PlanWrapper> CreatePlanAsync(string goal)
+        => Task.FromResult(new PlanWrapper(_planner.CreatePlan(goal)));
 }

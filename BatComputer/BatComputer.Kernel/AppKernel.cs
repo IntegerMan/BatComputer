@@ -21,7 +21,7 @@ public class AppKernel : IAppKernel, IDisposable
 
     public IKernel Kernel { get; }
 
-    public Plan? LastPlan { get; private set; }
+    public PlanWrapper? LastPlan { get; private set; }
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
@@ -83,7 +83,7 @@ public class AppKernel : IAppKernel, IDisposable
 
     public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
-    public async Task<Plan> PlanAsync(string userText)
+    public async Task<Plan?> PlanAsync(string userText)
     {
         LastPlan = null;
         LastMessage = userText;
@@ -92,15 +92,15 @@ public class AppKernel : IAppKernel, IDisposable
         Widgets.Clear();
         _tokenUsage.Clear();
 
-        Plan plan = _planner is null 
-            ? new Plan(_chat) 
+        PlanWrapper plan = _planner is null
+            ? new PlanWrapper(new Plan(_chat))
             : await _planner.CreatePlanAsync(userText);
 
         // Ensure the log has fully updated
         _loggerFactory.Flush();
 
         LastPlan = plan;
-        return plan;
+        return plan.Plan;
     }
 
     public async Task<PlanExecutionResult> ExecutePlanAsync()

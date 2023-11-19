@@ -10,8 +10,6 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 /// </summary>
 public class ChangePlannerCommand : AppCommand
 {
-    public string Title { get; }
-
     public override Task ExecuteAsync(AppKernel kernel)
     {
         PlannerStrategy planner = SelectPlanner(Skin);
@@ -26,6 +24,7 @@ public class ChangePlannerCommand : AppCommand
         .Title($"[{skin.NormalStyle}]Select a planner[/]")
         .HighlightStyle(skin.AccentStyle)
         .AddChoices([
+            new HandlebarsPlannerStrategy(),
             new StepwisePlannerStrategy(),
             new SequentialPlannerStrategy(),
             new ActionPlannerStrategy(),
