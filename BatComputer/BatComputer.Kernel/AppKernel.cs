@@ -26,6 +26,8 @@ public class AppKernel : IAppKernel, IDisposable
 
     public Plan? LastPlan { get; private set; }
 
+    public ISemanticTextMemory? Memory { get; private set; }
+
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
     {
         // This logger helps get accurate events from planners as not all planners tell the kernel when they incur token costs
@@ -47,12 +49,12 @@ public class AppKernel : IAppKernel, IDisposable
         _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         // Memory is important for providing additional context
-        ISemanticTextMemory memory = new MemoryBuilder()
+        Memory = new MemoryBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", settings.AzureOpenAiKey) // TODO: Local embedding would be better
             .WithMemoryStore(new VolatileMemoryStore())
             .Build();
-        Kernel.ImportFunctions(new TextMemoryPlugin(memory), "Memory");
+        Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
@@ -78,11 +80,14 @@ public class AppKernel : IAppKernel, IDisposable
         }
     }
 
-    private static async Task SearchMemoryAsync(ISemanticTextMemory memory, string query)
+    public async Task SearchMemoryAsync(string query)
     {
-        Console.WriteLine("\nQuery: " + query + "\n");
+        if (Memory == null)
+        {
+            throw new InvalidOperationException("Memory is not configured");
+        }
 
-        var memoryResults = memory.SearchAsync("BatComputer", query, limit: 2, minRelevanceScore: 0.5);
+        IAsyncEnumerable<MemoryQueryResult> memoryResults = Memory.SearchAsync("BatComputer", query, limit: 2, minRelevanceScore: 0.5);
 
         int i = 0;
         await foreach (MemoryQueryResult memoryResult in memoryResults)
@@ -93,8 +98,6 @@ public class AppKernel : IAppKernel, IDisposable
             Console.WriteLine("  Relevance: " + memoryResult.Relevance);
             Console.WriteLine();
         }
-
-        Console.WriteLine("----------------------");
     }
 
     public void SwitchPlanner(PlannerStrategy? plannerStrategy)
