@@ -1,11 +1,10 @@
-﻿using MattEland.BatComputer.ConsoleApp.Commands;
-using MattEland.BatComputer.ConsoleApp.Helpers;
+﻿using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Spectre.Console;
 
-namespace MattEland.BatComputer.ConsoleApp.Menus;
+namespace MattEland.BatComputer.ConsoleApp.Commands;
 public class ExecuteFunctionCommand : AppCommand
 {
     private readonly FunctionView _funcView;
@@ -29,15 +28,22 @@ public class ExecuteFunctionCommand : AppCommand
                 context.Variables.Set(parameter.Name, value);
             }
 
+
             FunctionResult result = await _skFunction.InvokeAsync(context);
 
             string? output = result.GetValue<string>();
-            AnsiConsole.MarkupLine($"[{Skin.DebugStyle}]{Markup.Escape(output ?? "[No result returned]")}[/]");
+            Panel panel = new Panel($"[{Skin.DebugStyle}]{Markup.Escape(output ?? "[No result returned]")}[/]")
+                .Border(BoxBorder.Rounded)
+                .BorderStyle(Skin.AccentStyle)
+                .Padding(2, 1, 2, 0)
+                .Header($"[{Skin.NormalStyle}] {_funcView.Name} results [/]", Justify.Left);
+
+            AnsiConsole.Write(panel);
             AnsiConsole.WriteLine();
         }
         catch (Exception ex)
         {
-            OutputHelpers.WriteException(Skin, ex);
+            Skin.WriteException(ex);
         }
     }
 

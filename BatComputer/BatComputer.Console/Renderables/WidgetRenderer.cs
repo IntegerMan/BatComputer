@@ -1,5 +1,4 @@
-﻿using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.Abstractions.Widgets;
+﻿using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp.Renderables;

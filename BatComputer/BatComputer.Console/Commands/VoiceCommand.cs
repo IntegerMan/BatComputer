@@ -1,5 +1,4 @@
-﻿using Azure;
-using MattEland.BatComputer.ConsoleApp.Helpers;
+﻿using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Kernel;
 using Spectre.Console;
 
@@ -21,6 +20,9 @@ public class VoiceCommand : AppCommand
 
         if (!string.IsNullOrWhiteSpace(prompt))
         {
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]I heard:[/] {Markup.Escape(prompt)}");
+            AnsiConsole.WriteLine();
+
             ConsolePlanExecutor executor = new(App, kernel);
             string? response = await executor.GetKernelPromptResponseAsync(prompt);
 

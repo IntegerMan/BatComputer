@@ -1,5 +1,4 @@
-﻿using Azure;
-using MattEland.BatComputer.ConsoleApp.Helpers;
+﻿using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;

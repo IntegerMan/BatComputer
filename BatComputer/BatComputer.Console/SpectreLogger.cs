@@ -1,5 +1,4 @@
-﻿using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.ConsoleApp.Abstractions;
+﻿using MattEland.BatComputer.ConsoleApp.Abstractions;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 

@@ -2,7 +2,6 @@
 using System.Text.Encodings.Web;
 using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Plugins.Weather.Models;
-using MattEland.BatComputer.Plugins.Weather.Widgets;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 

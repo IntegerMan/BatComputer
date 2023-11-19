@@ -12,7 +12,6 @@ using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Plugins.Memory;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 
 namespace MattEland.BatComputer.Kernel;

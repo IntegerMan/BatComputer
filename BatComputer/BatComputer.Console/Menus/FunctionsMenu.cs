@@ -1,8 +1,4 @@
-﻿using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.Abstractions.Widgets;
-using MattEland.BatComputer.ConsoleApp.Commands;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.AzureSdk;
+﻿using MattEland.BatComputer.ConsoleApp.Commands;
 
 namespace MattEland.BatComputer.ConsoleApp.Menus;
 
@@ -18,12 +14,13 @@ public class FunctionsMenu : MenuBase
         {
             yield return new ListPluginsCommand(App);
 
-            foreach (var func in App.Kernel!.Kernel.Functions.GetFunctionViews())
+            foreach (var plugin in App.Kernel!.Kernel.Functions.GetFunctionViews()
+                .Where(f => !App.Kernel.IsFunctionExcluded(f))
+                .GroupBy(f => f.PluginName)
+                .OrderBy(f => f.Key))
             {
-                if (App.Kernel!.Kernel.Functions.TryGetFunction(func.PluginName, func.Name, out ISKFunction? skFunc))
-                {
-                    yield return new ExecuteFunctionCommand(App, func, skFunc);
-                }
+
+                yield return new SubmenuCommand(App, plugin.Key, new PluginFunctionListMenu(App, plugin.Key));
             }
 
             yield return new ExitCommand(App, title: "Back");

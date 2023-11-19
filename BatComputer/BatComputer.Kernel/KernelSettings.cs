@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace MattEland.BatComputer.Kernel;

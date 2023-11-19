@@ -1,12 +1,8 @@
-﻿using Azure;
-using MattEland.BatComputer.Abstractions;
+﻿using MattEland.BatComputer.Abstractions;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using MattEland.BatComputer.Plugins.Sessionize.Model;
 using Newtonsoft.Json;
-using System;
-using MattEland.BatComputer.Abstractions.Widgets;
-using static System.Collections.Specialized.BitVector32;
 
 namespace MattEland.BatComputer.Plugins.Sessionize;
 
