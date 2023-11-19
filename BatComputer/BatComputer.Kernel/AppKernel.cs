@@ -10,6 +10,10 @@ using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Orchestration;
 using MattEland.BatComputer.Abstractions.Strategies;
+using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Plugins.Memory;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.TextEmbedding;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -33,6 +37,7 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
+            .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", settings.AzureOpenAiKey)
             .Build();
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
@@ -41,6 +46,14 @@ public class AppKernel : IAppKernel, IDisposable
         // Chat plugin is core and should always be available
         Kernel.ImportFunctions(new ChatPlugin(), "Chat");
         _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
+
+        // Memory is important for providing additional context
+        ISemanticTextMemory memory = new MemoryBuilder()
+            .WithLoggerFactory(_loggerFactory)
+            .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", settings.AzureOpenAiKey) // TODO: Local embedding would be better
+            .WithMemoryStore(new VolatileMemoryStore())
+            .Build();
+        Kernel.ImportFunctions(new TextMemoryPlugin(memory), "Memory");
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
@@ -64,6 +77,25 @@ public class AppKernel : IAppKernel, IDisposable
         {
             Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
         }
+    }
+
+    private static async Task SearchMemoryAsync(ISemanticTextMemory memory, string query)
+    {
+        Console.WriteLine("\nQuery: " + query + "\n");
+
+        var memoryResults = memory.SearchAsync("BatComputer", query, limit: 2, minRelevanceScore: 0.5);
+
+        int i = 0;
+        await foreach (MemoryQueryResult memoryResult in memoryResults)
+        {
+            Console.WriteLine($"Result {++i}:");
+            Console.WriteLine("  URL:     : " + memoryResult.Metadata.Id);
+            Console.WriteLine("  Title    : " + memoryResult.Metadata.Description);
+            Console.WriteLine("  Relevance: " + memoryResult.Relevance);
+            Console.WriteLine();
+        }
+
+        Console.WriteLine("----------------------");
     }
 
     public void SwitchPlanner(PlannerStrategy? plannerStrategy)
