@@ -26,7 +26,7 @@ public class ConsolePlanExecutor
         Plan plan;
         try
         {
-            await AnsiConsole.Status().StartAsync("Planning...", async ctx =>
+            await AnsiConsole.Status().StartAsync("Planning…", async ctx =>
             {
                 ctx.Spinner(Skin.Spinner);
 
@@ -63,7 +63,7 @@ public class ConsolePlanExecutor
         {
             PlanExecutionResult result = new();
 
-            await AnsiConsole.Status().StartAsync("Executing...", async ctx =>
+            await AnsiConsole.Status().StartAsync("Executing…", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
 

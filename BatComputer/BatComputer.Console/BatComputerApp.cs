@@ -49,6 +49,7 @@ public class BatComputerApp : IDisposable
         if (Settings.SupportsAiServices)
         {
             Speech = new SpeechProvider(Settings.AzureAiServicesRegion, Settings.AzureAiServicesKey, Settings.SpeechVoiceName);
+            Speech.EnableSpeech = Settings.IsSpeechEnabled;
             _ = Speech.SpeakAsync($"Welcome to {Skin.AppNameWithPrefix}");
         }
 

@@ -18,7 +18,7 @@ public class ShowMemoryCommand : AppCommand
         ISemanticTextMemory memory = App.Kernel!.Memory!;
 
         IList<string> collections = new List<string>(0);
-        await AnsiConsole.Status().StartAsync($"Getting collections...", async ctx =>
+        await AnsiConsole.Status().StartAsync($"Getting collections…", async ctx =>
         {
             ctx.Spinner = Skin.Spinner;
             collections = await memory.GetCollectionsAsync();

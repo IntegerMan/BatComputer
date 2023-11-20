@@ -19,7 +19,7 @@ public class AddMemoryCommand : AppCommand
             string description = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Description:[/]");
 
             string result = "";
-            await AnsiConsole.Status().StartAsync($"Saving memory...", async ctx =>
+            await AnsiConsole.Status().StartAsync($"Saving memory…", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
                 result = await App.Kernel!.Memory!.SaveInformationAsync(kernel.MemoryCollectionName!, information, id, description);

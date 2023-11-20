@@ -11,7 +11,7 @@ public class VoiceCommand : AppCommand
     public override async Task ExecuteAsync(AppKernel kernel)
     {
         string? prompt = null;
-        await AnsiConsole.Status().StartAsync("Listening...", async ctx =>
+        await AnsiConsole.Status().StartAsync("Listening…", async ctx =>
         {
             ctx.Spinner = Skin.Spinner;
 

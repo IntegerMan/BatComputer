@@ -7,6 +7,8 @@ public class SpeechProvider : IDisposable
     private readonly SpeechSynthesizer _synth;
     private readonly SpeechRecognizer _recognizer;
 
+    public bool EnableSpeech { get; set; } = true;
+
     public SpeechProvider(string region, string apiKey, string voiceName = "en-GB-AlfieNeural")
     {
         SpeechConfig config = SpeechConfig.FromSubscription(apiKey, region);
@@ -18,6 +20,11 @@ public class SpeechProvider : IDisposable
 
     public async Task<bool> SpeakAsync(string message)
     {
+        if (!EnableSpeech)
+        {
+            return false;
+        }
+
         SpeechSynthesisResult result = await _synth.SpeakTextAsync(message);
 
         if (result.Reason == ResultReason.Canceled)
