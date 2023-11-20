@@ -52,10 +52,11 @@ public class AppKernel : IAppKernel, IDisposable
         if (settings.SupportsMemory)
         {
             MemoryCollectionName = settings.EmbeddingCollectionName;
+            MemoryStore = new FileBackedMemory("MemoryStore.json");
             Memory = new MemoryBuilder()
                 .WithLoggerFactory(_loggerFactory)
                 .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
-                .WithMemoryStore(new VolatileMemoryStore())
+                .WithMemoryStore(MemoryStore)
                 .Build();
             Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
         }
@@ -119,6 +120,7 @@ public class AppKernel : IAppKernel, IDisposable
     public Queue<IWidget> Widgets { get; } = new();
     public string SystemText { get; set; } = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
     public string? MemoryCollectionName { get; } = "BatComputer";
+    public IMemoryStore? MemoryStore { get; }
 
     public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
