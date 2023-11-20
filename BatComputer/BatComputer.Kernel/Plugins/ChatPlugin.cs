@@ -1,10 +1,9 @@
 ﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using LLamaSharp.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Orchestration;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.Kernel.Plugins;
 
 public class ChatPlugin
 {
@@ -22,9 +21,7 @@ public class ChatPlugin
             return "No chat completion service is configured.";
         }
 
-        ChatRequestSettings settings = new() { ResultsPerPrompt = 1 };
-        IReadOnlyList<IChatResult> completions =
-            await chatService.GetChatCompletionsAsync(chatService.CreateNewChat(prompt), settings);
+        IReadOnlyList<IChatResult> completions = await chatService.GetChatCompletionsAsync(chatService.CreateNewChat(prompt));
 
         if (!completions.Any())
         {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.SemanticKernel.Memory;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.Kernel.FileMemoryStore;
 
 public class MemoryRecordCollection
 {

@@ -1,12 +1,9 @@
-﻿using MattEland.BatComputer.Abstractions.Strategies;
-using Microsoft.SemanticKernel.Memory;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.SemanticKernel.Memory;
 using System.Collections.Concurrent;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.Kernel.FileMemoryStore;
 
 /// <summary>
 /// WARNING: This is not a serious memory store to use in production. This is designed to be a "good enough" concept of a store
@@ -87,7 +84,7 @@ public class FileBackedMemory : IMemoryStore
         return Task.CompletedTask;
     }
 
-    public Task<bool> DoesCollectionExistAsync(string collectionName, CancellationToken cancellationToken = default) 
+    public Task<bool> DoesCollectionExistAsync(string collectionName, CancellationToken cancellationToken = default)
         => Task.FromResult(_collections.ContainsKey(collectionName));
 
     public Task<MemoryRecord?> GetAsync(string collectionName, string key, bool withEmbedding = false, CancellationToken cancellationToken = default)
@@ -108,7 +105,7 @@ public class FileBackedMemory : IMemoryStore
         return Task.FromResult(match);
     }
 
-    public async IAsyncEnumerable<MemoryRecord> GetBatchAsync(string collectionName, IEnumerable<string> keys, bool withEmbeddings = false, [EnumeratorCancellation] CancellationToken cancellationToken = default(CancellationToken))
+    public async IAsyncEnumerable<MemoryRecord> GetBatchAsync(string collectionName, IEnumerable<string> keys, bool withEmbeddings = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         foreach (string key in keys)
         {
@@ -120,10 +117,10 @@ public class FileBackedMemory : IMemoryStore
         }
     }
 
-    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancellationToken = default) 
+    public IAsyncEnumerable<string> GetCollectionsAsync(CancellationToken cancellationToken = default)
         => _collections.Keys.ToAsyncEnumerable();
 
-    public IAsyncEnumerable<(MemoryRecord, double)> GetNearestMatchesAsync(string collectionName, ReadOnlyMemory<float> embedding, int limit, double minRelevanceScore = 0.0, bool withEmbeddings = false, CancellationToken cancellationToken = default(CancellationToken))
+    public IAsyncEnumerable<(MemoryRecord, double)> GetNearestMatchesAsync(string collectionName, ReadOnlyMemory<float> embedding, int limit, double minRelevanceScore = 0.0, bool withEmbeddings = false, CancellationToken cancellationToken = default)
     {
         _collections.TryGetValue(collectionName, out MemoryRecordCollection? collection);
         if (collection == null || collection.Records.Count == 0 || limit <= 0)
@@ -134,14 +131,15 @@ public class FileBackedMemory : IMemoryStore
         List<ScoredMemoryRecord> top = new(limit);
         foreach (MemoryRecord record in collection.Records)
         {
-            if (record == null) continue;
+            if (record == null)
+                continue;
 
             double score = TensorPrimitives.CosineSimilarity(embedding.Span, record.Embedding.Span);
 
             if (score >= minRelevanceScore)
             {
-                MemoryRecord item = withEmbeddings 
-                    ? record 
+                MemoryRecord item = withEmbeddings
+                    ? record
                     : MemoryRecord.FromMetadata(record.Metadata, ReadOnlyMemory<float>.Empty, record.Key, record.Timestamp);
 
                 top.Add(new ScoredMemoryRecord(item, score));
@@ -150,10 +148,10 @@ public class FileBackedMemory : IMemoryStore
 
         top = top.OrderBy(r => r.Score).Take(limit).ToList();
 
-        return top.Select((ScoredMemoryRecord x) => (x.Record, x.Score)).ToAsyncEnumerable();
+        return top.Select((x) => (x.Record, x.Score)).ToAsyncEnumerable();
     }
 
-    public async Task<(MemoryRecord, double)?> GetNearestMatchAsync(string collectionName, ReadOnlyMemory<float> embedding, double minRelevanceScore = 0.0, bool withEmbedding = false, CancellationToken cancellationToken = default) 
+    public async Task<(MemoryRecord, double)?> GetNearestMatchAsync(string collectionName, ReadOnlyMemory<float> embedding, double minRelevanceScore = 0.0, bool withEmbedding = false, CancellationToken cancellationToken = default)
         => await GetNearestMatchesAsync(collectionName, embedding, 1, minRelevanceScore, withEmbedding, cancellationToken).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
     public Task RemoveAsync(string collectionName, string key, CancellationToken cancellationToken = default)

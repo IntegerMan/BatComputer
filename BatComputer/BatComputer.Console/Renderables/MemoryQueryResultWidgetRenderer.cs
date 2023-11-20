@@ -12,8 +12,8 @@ public class MemoryQueryResultWidgetRenderer : WidgetRenderer<MemoryQueryResultW
                     .AddColumns("", "")
                     .HideHeaders()
                     .Title(widget.Title ?? "Memory Query Results", style: skin.AccentStyle)
-                    .AddRow($"[{skin.NormalStyle}]Description:[/]", widget.Description ?? "None")
                     .AddRow($"[{skin.NormalStyle}]Value:[/]", widget.Text ?? "None")
+                    .AddRow($"[{skin.NormalStyle}]Description:[/]", widget.Description ?? "None")
                     .Centered();
 
         if (!string.IsNullOrWhiteSpace(widget.ExternalSourceName))

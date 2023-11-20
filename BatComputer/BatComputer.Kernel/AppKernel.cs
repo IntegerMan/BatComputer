@@ -1,18 +1,20 @@
-﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Planning;
-using MattEland.BatComputer.Abstractions;
+﻿using MattEland.BatComputer.Abstractions;
+using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Abstractions.Widgets;
+using MattEland.BatComputer.Kernel.FileMemoryStore;
+using MattEland.BatComputer.Kernel.Plugins;
 using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
-using Microsoft.SemanticKernel.Plugins.Web.Bing;
-using Microsoft.SemanticKernel.Plugins.Web;
-using Microsoft.SemanticKernel.Orchestration;
-using MattEland.BatComputer.Abstractions.Strategies;
-using Microsoft.SemanticKernel.Memory;
-using Microsoft.SemanticKernel.Plugins.Memory;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Memory;
+using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.Planning;
+using Microsoft.SemanticKernel.Plugins.Memory;
+using Microsoft.SemanticKernel.Plugins.Web;
+using Microsoft.SemanticKernel.Plugins.Web.Bing;
 
 namespace MattEland.BatComputer.Kernel;
 

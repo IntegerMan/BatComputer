@@ -1,7 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.Kernel.Plugins;
 
 public class MePlugin
 {
