@@ -83,7 +83,7 @@ public class AppKernel : IAppKernel, IDisposable
 
         if (settings.SupportsSessionize)
         {
-            Kernel.ImportFunctions(new SessionizePlugin(this, settings.SessionizeToken!), "Sessionize");
+            Kernel.ImportFunctions(new SessionizePlugin(Memory, settings.SessionizeToken!), "Sessionize");
         }
     }
 

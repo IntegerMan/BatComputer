@@ -2,27 +2,60 @@
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using MattEland.BatComputer.Plugins.Sessionize.Model;
-using Newtonsoft.Json;
+using Microsoft.SemanticKernel.Memory;
+using System.Text;
 
 namespace MattEland.BatComputer.Plugins.Sessionize;
 
 public class SessionizePlugin : IDisposable
 {
-    private readonly IAppKernel _kernel;
+    private readonly ISemanticTextMemory? _memory;
     private readonly SessionizeService _sessionize;
+    private readonly List<Session> _sessions = new();
 
-    public SessionizePlugin(IAppKernel kernel, string apiToken)
+    public SessionizePlugin(ISemanticTextMemory? memory, string apiToken, string? collectionName = null)
     {
-        _kernel = kernel;
+        _memory = memory;
         _sessionize = new SessionizeService(apiToken);
+        SessionsMemoryCollection = collectionName ?? "Sessionize";
     }
 
-    [SKFunction, Description("Gets data for all speakers at the conference")]
-    public async Task<string> GetAllSpeakerJson()
-    {
-        IEnumerable<Speaker> speakers = await _sessionize.GetSpeakerEntriesAsync();
+    public string SessionsMemoryCollection { get; set; }
 
-        return JsonConvert.SerializeObject(speakers);
+    private async Task<List<Session>> GetSessionsAsync()
+    {
+        if (_sessions.Count <= 0)
+        {
+            DateTime now = DateTime.UtcNow;
+            string additionalMetadata = $"Session retrieved {now}";
+            string externalSourceName = "Sessionize";
+
+            IEnumerable<Session> sessions = await _sessionize.GetSessionsAsync();
+
+            foreach (Session session in sessions)
+            {
+                if (_memory != null)
+                {
+                    string text = BuildSessionString(session);
+                    string description = $"Session '{session.Title}'";
+
+                    if (session.Speakers.Count == 1)
+                    {
+                        description += $" by {session.Speakers.First().Name}";
+                    }
+                    else if (session.Speakers.Count > 1)
+                    {
+                        description += $" by {string.Join(", ", session.Speakers.Select(s => s.Name))}";
+                    }
+
+                    await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, session.Id, externalSourceName, description, additionalMetadata);
+                }
+
+                _sessions.Add(session);
+            }
+        }
+
+        return _sessions;
     }
 
     [SKFunction, Description("Gets the names of all speakers for the conference")]
@@ -33,15 +66,15 @@ public class SessionizePlugin : IDisposable
         return string.Join(", ", speakers.OrderBy(s => s.FullName).Select(s => s.FullName));
     }
 
-    [SKFunction, Description("Gets the names of all sessions for the conference")]
-    public async Task<string> GetAllSessionNames()
+    [SKFunction, Description("Gets the title of all sessions for the conference")]
+    public async Task<string> GetAllSessions()
     {
-        IEnumerable<Session> sessions = await _sessionize.GetSessionsAsync();
+        IEnumerable<Session> sessions = await GetSessionsAsync();
 
         return string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
     }
 
-    [SKFunction, Description("Gets the names of all sessions active at a specified DateTime")]
+    [SKFunction, Description("Gets the titles of all sessions active at a specified time")]
     public async Task<string> GetAllActiveSessionNames([Description("The date and time of the session")] string dateTime)
     {
         if (!DateTime.TryParse(dateTime, out DateTime activeDateTime))
@@ -49,7 +82,7 @@ public class SessionizePlugin : IDisposable
             return $"{dateTime} is not a valid date / time";
         }
 
-        IEnumerable<Session> sessions = (await _sessionize.GetActiveSessionsAsync(activeDateTime)).ToList();
+        IEnumerable<Session> sessions = (await GetSessionsAsync()).Where(s => s.StartsAt <= activeDateTime && s.EndsAt >= activeDateTime).ToList();
 
         if (!sessions.Any())
             return $"There are no active sessions at {dateTime}";
@@ -61,120 +94,169 @@ public class SessionizePlugin : IDisposable
     [SKFunction, Description("Gets the unique dates of the conference")]
     public async Task<string> GetAllSessionDates()
     {
-        IEnumerable<DateTime> dates = await _sessionize.GetUniqueDatesAsync();
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        IEnumerable<DateTime> dates = sessions.Select(s => s.StartsAt.Date).Distinct().OrderBy(d => d);
 
         return string.Join(", ", dates.Select(d => d.ToShortDateString()));
     }
 
-    [SKFunction, Description("Gets the unique session start times from any day of the conference")]
+    [SKFunction, Description("Gets the unique session start times")]
     public async Task<string> GetAllSessionStartTimes()
     {
-        IEnumerable<DateTime> dates = await _sessionize.GetUniqueStartTimesAsync();
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        IEnumerable<DateTime> dates = sessions.Select(s => s.StartsAt).Distinct().OrderBy(d => d);
 
         return string.Join(", ", dates.Select(d => d.ToString("f")));
     }
 
     [SKFunction, Description("Gets the unique session start times for a specific day of the conference")]
-    public async Task<string> GetAllSessionStartTimesForSpecificDate([Description("The date to retrieve session start times for. For example, 1/9/24")] string date)
+    public async Task<string> GetAllSessionStartTimesForSpecificDate(
+        [Description("The date to retrieve session start times for. For example, 1/9/24")] string date)
     {
         if (!DateTime.TryParse(date, out DateTime dateTime))
         {
             return $"{date} is not a valid date";
         }
 
-        IEnumerable<DateTime> dates = await _sessionize.GetUniqueStartTimesAsync(dateTime);
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        IEnumerable<DateTime> dates = sessions.Select(s => s.StartsAt).Distinct().OrderBy(d => d);
 
         return string.Join(", ", dates.Select(d => d.ToString("f")));
     }
 
-    [SKFunction, Description("Gets the names of all upcoming sessions")]
-    public async Task<string> GetUpcomingSessionNames()
+    [SKFunction, Description("Gets the titles of all upcoming sessions")]
+    public async Task<string> GetUpcomingSessionTitles()
     {
-        IEnumerable<Session> sessions = (await _sessionize.GetUpcomingSessionsAsync()).ToList();
-
+        IEnumerable<Session> sessions = (await GetSessionsAsync()).Where(s => s.StartsAt >= DateTime.Now);
+        
         if (!sessions.Any())
             return "There are no upcoming sessions";
 
-        return "Upcoming sessions are " + string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
+        return $"Upcoming sessions are {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
 
-    [SKFunction, Description("Gets the names of all completed sessions")]
-    public async Task<string> GetCompletedSessionNames()
+    [SKFunction, Description("Gets the title of all completed sessions")]
+    public async Task<string> GetCompletedSessionTitles()
     {
-        IEnumerable<Session> sessions = (await _sessionize.GetCompletedSessionsAsync()).ToList();
+        IEnumerable<Session> sessions = (await GetSessionsAsync()).Where(s => s.EndsAt <= DateTime.Now);
 
         if (!sessions.Any())
             return "There are no completed sessions";
 
-        return "Completed sessions are " + string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
+        return $"Completed sessions are {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
 
-    [SKFunction, Description("Gets the names of all sessions in a specific room")]
-    public async Task<string> GetSessionsByRoom([Description("The name of the room. For example, River A")] string room)
+    [SKFunction, Description("Gets the title of all sessions in a specific room")]
+    public async Task<string> GetSessionNamesByRoom([Description("The name of the room. For example, River A")] string room)
     {
-        IEnumerable<Session> sessions = (await _sessionize.GetSessionsByRoomAsync(room)).ToList();
+        IEnumerable<Session> sessions = (await GetSessionsAsync())
+            .Where(s => s.Room.Equals(room, StringComparison.OrdinalIgnoreCase));
 
         if (!sessions.Any())
             return $"Could not find any sessions in room '{room}'";
 
-        return $"Sessions in {room}: " + string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
+        return $"Sessions in {room}: {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
 
-    [SKFunction, Description("Gets the names of all sessions matching a specific category name")]
-    public async Task<string> GetSessionsByCategory([Description("The name of the category. For example, AI")] string category)
+    [SKFunction, Description("Searches the sessions")]
+    public async Task<string> Search([Description("The topic to search for")] string query)
     {
-        IEnumerable<Session> sessions = (await _sessionize.GetSessionsByCategoryItem(category)).ToList();
+        if (_memory == null)
+        {
+            return "I can't search sessions without memory capabilities.";
+        }
 
-        if (!sessions.Any())
-            return $"Could not find any sessions with category '{category}'";
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        IAsyncEnumerable<MemoryQueryResult> results = _memory.SearchAsync(SessionsMemoryCollection, query, limit: 5, minRelevanceScore: 0.5);
 
-        return $"Sessions in category {category}: " + string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
-    }
+        StringBuilder sb = new();
 
-    [SKFunction, Description("Gets the names of all categories in the conference")]
-    public async Task<string> GetUniqueCategories()
-    {
-        IEnumerable<string> categories = (await _sessionize.GetUniqueCategoriesAsync()).ToList();
+        await foreach (MemoryQueryResult result in results)
+        {
+            string id = result.Metadata.Id;
 
-        if (!categories.Any())
-            return "Could not find any categories";
+            Session? session = sessions.FirstOrDefault(s => s.Id == id);
 
-        return "Available categories are: " + string.Join(", ", categories);
+            if (session == null)
+            {
+                continue;
+            }
+
+            sb.AppendLine($"- {session.Title}");
+        }
+
+        if (sb.Length == 0)
+        {
+            return $"I couldn't find any sessions related to '{query}'";
+        }
+
+        return "I found the following sessions: \r\n" + sb.ToString();
     }
 
     [SKFunction, Description("Gets the names of all rooms in the conference")]
     public async Task<string> GetUniqueRooms()
     {
-        IEnumerable<string> rooms = (await _sessionize.GetUniqueRoomsAsync()).ToList();
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        IEnumerable<string> rooms = sessions.Select(s => s.Room).Distinct();
 
         if (!rooms.Any())
             return "Could not find any rooms";
 
-        return "Available rooms are: " + string.Join(", ", rooms);
+        return $"Available rooms are: {string.Join(", ", rooms)}";
     }
 
-    [SKFunction, Description("Gets the session names of sessions by a specific speaker")]
-    public async Task<string> GetSessionNamesBySpeaker([Description("The full name of the speaker")] string fullName)
+    [SKFunction, Description("Gets the session titles of sessions by a specific speaker")]
+    public async Task<string> GetSessionsBySpeaker([Description("The full name of the speaker")] string fullName)
     {
-        IEnumerable<Session> sessions = (await _sessionize.GetSessionsBySpeakerAsync(fullName)).ToList();
+        IEnumerable<Session> sessions = (await GetSessionsAsync()).Where(s => s.Speakers.Exists(sp => sp.Name.Equals(fullName, StringComparison.OrdinalIgnoreCase)));
 
         if (!sessions.Any())
             return $"There are no sessions by {fullName}";
 
-        return $"{fullName}'s sessions are " + string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
+        return $"{fullName}'s sessions are {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
 
-    [SKFunction, Description("Gets session details by a session name")]
-    public async Task<string> GetSessionDetails([Description("The name of the session")] string sessionName)
+    [SKFunction, Description("Gets session details by a session title")]
+    public async Task<string> GetSessionDetails([Description("The title of the session")] string title)
     {
-        Session? session = await _sessionize.GetSessionByTitleAsync(sessionName);
+        IEnumerable<Session> sessions = await GetSessionsAsync();
+        Session? session = sessions.FirstOrDefault(s => string.Equals(s.Title, title, StringComparison.OrdinalIgnoreCase));
 
         if (session == null)
-            return $"Could not find a session named '{sessionName}'";
+        {
+            return $"Could not find a session named '{title}'";
+        }
 
-        // TODO: _kernel.AddWidget(new DataWidget("Session Details", session));
+        return BuildSessionString(session);
+    }
 
-        return JsonConvert.SerializeObject(session); // TODO: Maybe not JSON?
+    private static string BuildSessionString(Session session)
+    {
+        StringBuilder sb = new();
+        bool isPast = session.EndsAt < DateTime.Now;
+        
+        if (session.Speakers.Count == 1)
+        {
+            sb.Append($"{session.Speakers.First().Name} {(isPast ? "spoke on " : "is speaking on ")}");
+        }
+        else if (session.Speakers.Count > 1)
+        {
+            sb.Append($"{string.Join(", ", session.Speakers.Select(s => s.Name))} {(isPast ? "spoke on " : "are speaking on ")}");
+        }
+
+        sb.Append($"'{session.Title}' in room {session.Room}");
+        sb.Append($" from {session.StartsAt.ToLocalTime().ToShortTimeString()} to {session.EndsAt.ToLocalTime().ToShortTimeString()}");
+        sb.Append($" on {session.StartsAt.Date.ToShortDateString()}.");
+
+        List<string> tags = session.Categories.SelectMany(c => c.CategoryItems).Select(t => t.Name).ToList();
+        if (tags.Count > 0)
+        {
+            sb.Append($" The session is tagged with the following categories: {string.Join(", ", tags)}.");
+        }
+        sb.AppendLine($" The session's abstract follows:");
+        sb.AppendLine(session.Description);
+
+        return sb.ToString();
     }
 
     [SKFunction, Description("Gets speaker details by their full name")]
@@ -185,22 +267,14 @@ public class SessionizePlugin : IDisposable
         if (speaker == null)
             return $"Could not find a speaker named '{speakerName}'";
 
-        // TODO: _kernel.AddWidget(new DataWidget("Speaker Details", speaker));
+        string speakerText = $"{speaker.FullName} is speaking on the following sessions: {string.Join(", ", speaker.Sessions.Select(s => s.Name))}. Their bio follows: \r\n{speaker.Bio}";
 
-        return JsonConvert.SerializeObject(speaker); // TODO: Maybe not JSON?
+        // TODO: Memorize this if text memory is working
+
+        return speakerText;
     }
 
-    [SKFunction, Description("Gets data for all sessions at the conference")]
-    public async Task<string> GetAllSessionJson()
-    {
-        IEnumerable<Session> sessions = await _sessionize.GetSessionsAsync();
-
-        return JsonConvert.SerializeObject(sessions);
-    }
-
-    // TODO: Probably need a search speakers by name function
-
-    // TODO: Probably need a search sessions by name function
+    // TODO: Probably need a search function
 
     public void Dispose()
     {

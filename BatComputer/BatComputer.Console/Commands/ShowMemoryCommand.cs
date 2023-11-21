@@ -38,7 +38,7 @@ public class ShowMemoryCommand : AppCommand
 
             foreach (MemoryRecord record in collection.Records.OrderBy(r => r.Metadata.Id))
             {
-                collectionTree.AddNode(Markup.Escape(record.Metadata.Id));
+                collectionTree.AddNode($"[{Skin.AccentStyle}]{Markup.Escape(record.Key)}[/]: [{Skin.DebugStyle}]{Markup.Escape(record.Metadata.Description)}[/]");
             }
         }
         AnsiConsole.Write(memTree);
@@ -65,15 +65,6 @@ public class ShowMemoryCommand : AppCommand
             foreach (string collection in collections)
             {
                 AnsiConsole.MarkupLine($"[{Skin.DebugStyle}] - {Markup.Escape(collection)}[/]");
-
-                /* TODO: I'd love to be able to list keys in the collection
-                IAsyncEnumerable<MemoryQueryResult> results = memory.SearchAsync(collection, string.Empty, limit: 100, minRelevanceScore: 0);
-                await foreach (MemoryQueryResult result in results)
-                {
-                    AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]     - {Markup.Escape(result.ToString())}[/]");
-
-                }
-                */
             }
         }
     }

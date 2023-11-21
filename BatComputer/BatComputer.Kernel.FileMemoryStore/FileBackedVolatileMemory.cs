@@ -188,6 +188,7 @@ public class FileBackedMemory : IMemoryStore, IEnumerable<MemoryRecordCollection
             _collections.TryAdd(collectionName, collection);
         }
 
+        record.Key = $"{collection.Collection}:{record.Metadata.Id}";
         collection.Records.RemoveAll(r => r.Key == record.Key);
         collection.Records.Add(record);
 
@@ -209,6 +210,7 @@ public class FileBackedMemory : IMemoryStore, IEnumerable<MemoryRecordCollection
 
         foreach (var record in records)
         {
+            record.Key = $"{collection.Collection}:{record.Metadata.Id}";
             collection.Records.RemoveAll(r => r.Key == record.Key);
             collection.Records.Add(record);
         }
