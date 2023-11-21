@@ -1,8 +1,6 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
-using Google.Apis.CustomSearchAPI.v1.Data;
-using MattEland.BatComputer.Kernel;
+﻿using MattEland.BatComputer.Kernel;
+using MattEland.BatComputer.Kernel.FileMemoryStore;
 using Microsoft.SemanticKernel.Memory;
-using Microsoft.VisualBasic;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
@@ -15,6 +13,39 @@ public class ShowMemoryCommand : AppCommand
 
     public override async Task ExecuteAsync(AppKernel kernel)
     {
+        // Normally you can't get at the keys in memory easily, but I've exposed them for demo / debugging purposes in FileBackedMemory
+        FileBackedMemory? fileMem = App.Kernel?.MemoryStore as FileBackedMemory;
+        if (fileMem != null)
+        {
+            DisplayMemoryStore(fileMem);
+        }
+        else
+        {
+            // Fallback mode queries and shows the collection names only
+            await DisplayMemoryAsync();
+        }
+
+        AnsiConsole.WriteLine();
+    }
+
+    private void DisplayMemoryStore(FileBackedMemory fileMem)
+    {
+        Tree memTree = new($"[{Skin.SuccessStyle}]Memory[/]");
+
+        foreach (MemoryRecordCollection collection in fileMem)
+        {
+            TreeNode collectionTree = memTree.AddNode($"[{Skin.NormalStyle}]{Markup.Escape(collection.Collection)}[/]");
+
+            foreach (MemoryRecord record in collection.Records.OrderBy(r => r.Metadata.Id))
+            {
+                collectionTree.AddNode(Markup.Escape(record.Metadata.Id));
+            }
+        }
+        AnsiConsole.Write(memTree);
+    }
+
+    private async Task DisplayMemoryAsync()
+    {
         ISemanticTextMemory memory = App.Kernel!.Memory!;
 
         IList<string> collections = new List<string>(0);
@@ -22,7 +53,7 @@ public class ShowMemoryCommand : AppCommand
         {
             ctx.Spinner = Skin.Spinner;
             collections = await memory.GetCollectionsAsync();
-        });         
+        });
 
         if (!collections.Any())
         {
@@ -45,8 +76,6 @@ public class ShowMemoryCommand : AppCommand
                 */
             }
         }
-
-        AnsiConsole.WriteLine();
     }
 
     public override string DisplayText => "Show Memories";

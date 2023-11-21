@@ -1,4 +1,5 @@
 ﻿using Microsoft.SemanticKernel.Memory;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,7 @@ namespace MattEland.BatComputer.Kernel.FileMemoryStore;
 /// for light usage during a demo or workshop that doesn't require a database, but still has a good chance of persisting small datasets correctly.
 /// It's performance and reliability are bound to be abysmal. I also suspect it to have thread safety issues. Seriously, don't use this in production.
 /// </summary>
-public class FileBackedMemory : IMemoryStore
+public class FileBackedMemory : IMemoryStore, IEnumerable<MemoryRecordCollection>
 {
     private readonly ConcurrentDictionary<string, MemoryRecordCollection> _collections = new();
     private readonly string _filePath;
@@ -215,5 +216,18 @@ public class FileBackedMemory : IMemoryStore
         SaveToFile();
 
         return records.Select(r => r.Key).ToAsyncEnumerable();
+    }
+
+    public IEnumerator<MemoryRecordCollection> GetEnumerator()
+    {
+        foreach (MemoryRecordCollection collection in _collections.Values)
+        {
+            yield return collection;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
