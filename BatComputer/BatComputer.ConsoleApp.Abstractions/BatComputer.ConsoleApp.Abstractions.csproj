@@ -8,6 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Spectre.Console" Version="0.47.1-preview.0.38" />
+		<PackageReference Include="Spectre.Console" Version="0.47.1-preview.0.42" />
 	</ItemGroup>
 </Project>
