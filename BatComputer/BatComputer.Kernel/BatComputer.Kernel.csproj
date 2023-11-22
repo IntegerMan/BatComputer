@@ -10,6 +10,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta8" />
 	  <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta8" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Experimental.Assistants" Version="1.0.0-beta8" />
 	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.0.0-beta8" />
 	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Document" Version="1.0.0-beta8" />
 	  <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" Version="1.0.0-beta8" />

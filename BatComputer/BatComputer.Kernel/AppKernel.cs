@@ -15,6 +15,7 @@ using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
+using Microsoft.SemanticKernel.Experimental.Assistants;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -45,6 +46,8 @@ public class AppKernel : IAppKernel, IDisposable
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
         _planner = plannerStrategy?.BuildPlanner(Kernel);
+
+        // Assistant architecture
 
         // Chat plugin is core and should always be available
         Kernel.ImportFunctions(new ChatPlugin(), "Chat");
@@ -83,27 +86,19 @@ public class AppKernel : IAppKernel, IDisposable
 
         if (settings.SupportsSessionize)
         {
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            SKPlugin plugin = null;
+            AssistantBuilder assistantBuilder = new AssistantBuilder()
+                .WithName("Conference Concierge")
+                .WithDescription("A virtual assistant to help search conference sessions and speakers")
+                .WithInstructions("You can ask me to search for sessions, speakers, or other information about the conference. For example, you can ask me to find sessions about Azure or speakers by their names.");
+
+            IAssistant assistant = assistantBuilder.BuildAsync().Result; // TODO: This needs to go in an async method and leave the constructor
+
+            var assistThread = assistant.NewThreadAsync();
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
             Kernel.ImportFunctions(new SessionizePlugin(Memory, settings.SessionizeToken!), "Sessionize");
-        }
-    }
-
-    public async Task SearchMemoryAsync(string query)
-    {
-        if (Memory == null)
-        {
-            throw new InvalidOperationException("Memory is not configured");
-        }
-
-        IAsyncEnumerable<MemoryQueryResult> memoryResults = Memory.SearchAsync("BatComputer", query, limit: 2, minRelevanceScore: 0.5);
-
-        int i = 0;
-        await foreach (MemoryQueryResult memoryResult in memoryResults)
-        {
-            Console.WriteLine($"Result {++i}:");
-            Console.WriteLine("  URL:     : " + memoryResult.Metadata.Id);
-            Console.WriteLine("  Title    : " + memoryResult.Metadata.Description);
-            Console.WriteLine("  Relevance: " + memoryResult.Relevance);
-            Console.WriteLine();
         }
     }
 
