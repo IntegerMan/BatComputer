@@ -90,6 +90,41 @@ public class SessionizePlugin : IDisposable
         return _speakers;
     }
 
+    [SKFunction, Description("Searches the sessions and speakers for relevant information")]
+    public async Task<string> Search([Description("The speaker, session, or topic of interest")] string query)
+    {
+        if (_memory == null)
+        {
+            return "I can't search sessions without a memory configured.";
+        }
+
+        IAsyncEnumerable<MemoryQueryResult> results = 
+            _memory.SearchAsync(SessionsMemoryCollection, query, limit: 5, minRelevanceScore: 0.5);
+
+        StringBuilder sb = new();
+
+        await foreach (MemoryQueryResult result in results)
+        {
+            string id = result.Metadata.Id;
+
+            Session? session = _sessions.FirstOrDefault(s => s.Id == id);
+            Speaker? speaker = _speakers.FirstOrDefault(s => s.Id == id);
+
+            if (session != null)
+            {
+                sb.AppendLine(BuildSessionString(session));
+            }
+            else if (speaker != null)
+            {
+                sb.AppendLine(BuildSpeakerString(speaker));
+            }
+        }
+
+        return sb.Length == 0
+            ? $"I couldn't find any sessions or speakers related to '{query}'"
+            : $"I found the following sessions and speakers related to that: \r\n{sb}";
+    }
+
     [SKFunction, Description("Gets the names of all speakers for the conference")]
     public async Task<string> GetAllSpeakerNames()
     {
@@ -106,6 +141,7 @@ public class SessionizePlugin : IDisposable
         return string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title));
     }
 
+    /*
     [SKFunction, Description("Gets the titles of all sessions active at a specified time")]
     public async Task<string> GetAllActiveSessionNames([Description("The date and time of the session")] string dateTime)
     {
@@ -166,6 +202,7 @@ public class SessionizePlugin : IDisposable
 
         return $"Upcoming sessions are {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
+    */
 
     [SKFunction, Description("Gets the title of all completed sessions")]
     public async Task<string> GetCompletedSessionTitles()
@@ -190,6 +227,7 @@ public class SessionizePlugin : IDisposable
         return $"Sessions in {room}: {string.Join(", ", sessions.OrderBy(s => s.StartsAt).ThenBy(s => s.Title).Select(s => s.Title))}";
     }
 
+    /*
     [SKFunction, Description("Searches the sessions")]
     public async Task<string> Search([Description("The topic to search for")] string query)
     {
@@ -224,6 +262,7 @@ public class SessionizePlugin : IDisposable
 
         return "I found the following sessions: \r\n" + sb.ToString();
     }
+    */
 
     [SKFunction, Description("Gets the names of all rooms in the conference")]
     public async Task<string> GetUniqueRooms()
@@ -307,8 +346,6 @@ public class SessionizePlugin : IDisposable
 
     private static string BuildSpeakerString(Speaker speaker) 
         => $"{speaker.FullName} is speaking on the following sessions: {string.Join(", ", speaker.Sessions.Select(s => s.Name))}. Their bio follows: \r\n{speaker.Bio}";
-
-    // TODO: Probably need a search function
 
     public void Dispose()
     {
