@@ -40,13 +40,6 @@ public class SessionizeService : IDisposable
 
         return sessions.SelectMany(g => g.Sessions);
     }    
-    
-    public async Task<Speaker?> GetSpeakerByFullName(string fullName)
-    {
-        IEnumerable<Speaker> speakers = await GetSpeakerEntriesAsync();
-
-        return speakers.FirstOrDefault(s => string.Equals(s.FullName, fullName, StringComparison.OrdinalIgnoreCase));
-    }
 
     public void Dispose() => _client.Dispose();
 }

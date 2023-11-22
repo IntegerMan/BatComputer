@@ -12,7 +12,7 @@ public class RootMenu : MenuBase
     {
         get
         {
-            yield return new SemanticQueryCommand(App);
+            yield return new ChatCommand(App);
             yield return new VoiceCommand(App);
             yield return new ShowResultTreeCommand(App);
             yield return new RetryCommand(App);

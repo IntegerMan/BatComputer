@@ -1,8 +1,7 @@
-﻿using MattEland.BatComputer.Abstractions;
+﻿using MattEland.BatComputer.Plugins.Sessionize.Model;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
-using MattEland.BatComputer.Plugins.Sessionize.Model;
 using Microsoft.SemanticKernel.Memory;
+using System.ComponentModel;
 using System.Text;
 
 namespace MattEland.BatComputer.Plugins.Sessionize;
@@ -12,6 +11,7 @@ public class SessionizePlugin : IDisposable
     private readonly ISemanticTextMemory? _memory;
     private readonly SessionizeService _sessionize;
     private readonly List<Session> _sessions = new();
+    private readonly List<Speaker> _speakers = new();
 
     public SessionizePlugin(ISemanticTextMemory? memory, string apiToken, string? collectionName = null)
     {
@@ -58,12 +58,44 @@ public class SessionizePlugin : IDisposable
         return _sessions;
     }
 
+    private async Task<List<Speaker>> GetSpeakersAsync()
+    {
+        if (_speakers.Count <= 0)
+        {
+            DateTime now = DateTime.UtcNow;
+            string additionalMetadata = $"Speaker retrieved {now}";
+            string externalSourceName = "Sessionize";
+
+            IEnumerable<Speaker> speakers = await _sessionize.GetSpeakerEntriesAsync();
+
+            foreach (Speaker speaker in speakers)
+            {
+                if (_memory != null)
+                {
+                    string text = BuildSpeakerString(speaker);
+                    string description = $"Speaker {speaker.FullName}";
+
+                    if (speaker.Sessions.Count > 0)
+                    {
+                        description += $" speaking on {string.Join(", ", speaker.Sessions.Select(s => $"'{s.Name}'"))}";
+                    }
+
+                    await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, speaker.Id, externalSourceName, description, additionalMetadata);
+                }
+
+                _speakers.Add(speaker);
+            }
+        }
+
+        return _speakers;
+    }
+
     [SKFunction, Description("Gets the names of all speakers for the conference")]
     public async Task<string> GetAllSpeakerNames()
     {
-        IEnumerable<SpeakerWallEntry> speakers = await _sessionize.GetSpeakerWallEntriesAsync();
+        IEnumerable<Speaker> speakers = await GetSpeakersAsync();
 
-        return string.Join(", ", speakers.OrderBy(s => s.FullName).Select(s => s.FullName));
+        return string.Join(", ", speakers.OrderBy(s => s.FullName).Select(s => s.FullName).Distinct());
     }
 
     [SKFunction, Description("Gets the title of all sessions for the conference")]
@@ -260,19 +292,21 @@ public class SessionizePlugin : IDisposable
     }
 
     [SKFunction, Description("Gets speaker details by their full name")]
-    public async Task<string> GetSpeakerDetails([Description("The full name of the speaker")] string speakerName)
+    public async Task<string> GetSpeakerDetails([Description("The full name of the speaker")] string fullName)
     {
-        Speaker? speaker = await _sessionize.GetSpeakerByFullName(speakerName);
+        IEnumerable<Speaker> speakers = await GetSpeakersAsync();
+        Speaker? speaker = speakers.FirstOrDefault(s => string.Equals(s.FullName, fullName, StringComparison.OrdinalIgnoreCase));
 
         if (speaker == null)
-            return $"Could not find a speaker named '{speakerName}'";
+        {
+            return $"Could not find a speaker named '{fullName}'";
+        }
 
-        string speakerText = $"{speaker.FullName} is speaking on the following sessions: {string.Join(", ", speaker.Sessions.Select(s => s.Name))}. Their bio follows: \r\n{speaker.Bio}";
-
-        // TODO: Memorize this if text memory is working
-
-        return speakerText;
+        return BuildSpeakerString(speaker);
     }
+
+    private static string BuildSpeakerString(Speaker speaker) 
+        => $"{speaker.FullName} is speaking on the following sessions: {string.Join(", ", speaker.Sessions.Select(s => s.Name))}. Their bio follows: \r\n{speaker.Bio}";
 
     // TODO: Probably need a search function
 
