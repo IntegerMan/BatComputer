@@ -87,26 +87,6 @@ public class AppKernel : IAppKernel, IDisposable
         }
     }
 
-    public async Task SearchMemoryAsync(string query)
-    {
-        if (Memory == null)
-        {
-            throw new InvalidOperationException("Memory is not configured");
-        }
-
-        IAsyncEnumerable<MemoryQueryResult> memoryResults = Memory.SearchAsync("BatComputer", query, limit: 2, minRelevanceScore: 0.5);
-
-        int i = 0;
-        await foreach (MemoryQueryResult memoryResult in memoryResults)
-        {
-            Console.WriteLine($"Result {++i}:");
-            Console.WriteLine("  URL:     : " + memoryResult.Metadata.Id);
-            Console.WriteLine("  Title    : " + memoryResult.Metadata.Description);
-            Console.WriteLine("  Relevance: " + memoryResult.Relevance);
-            Console.WriteLine();
-        }
-    }
-
     public void SwitchPlanner(PlannerStrategy? plannerStrategy)
     {
         _planner = plannerStrategy?.BuildPlanner(Kernel);

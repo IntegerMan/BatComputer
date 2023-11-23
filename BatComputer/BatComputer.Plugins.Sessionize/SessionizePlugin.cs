@@ -28,7 +28,6 @@ public class SessionizePlugin : IDisposable
         {
             DateTime now = DateTime.UtcNow;
             string additionalMetadata = $"Session retrieved {now}";
-            string externalSourceName = "Sessionize";
 
             IEnumerable<Session> sessions = await _sessionize.GetSessionsAsync();
 
@@ -48,7 +47,7 @@ public class SessionizePlugin : IDisposable
                         description += $" by {string.Join(", ", session.Speakers.Select(s => s.Name))}";
                     }
 
-                    await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, session.Id, externalSourceName, description, additionalMetadata);
+                    await _memory.SaveInformationAsync(SessionsMemoryCollection, text, session.Id, description, additionalMetadata);
                 }
 
                 _sessions.Add(session);
@@ -64,7 +63,6 @@ public class SessionizePlugin : IDisposable
         {
             DateTime now = DateTime.UtcNow;
             string additionalMetadata = $"Speaker retrieved {now}";
-            string externalSourceName = "Sessionize";
 
             IEnumerable<Speaker> speakers = await _sessionize.GetSpeakerEntriesAsync();
 
@@ -80,7 +78,7 @@ public class SessionizePlugin : IDisposable
                         description += $" speaking on {string.Join(", ", speaker.Sessions.Select(s => $"'{s.Name}'"))}";
                     }
 
-                    await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, speaker.Id, externalSourceName, description, additionalMetadata);
+                    await _memory.SaveInformationAsync(SessionsMemoryCollection, text, speaker.Id, description, additionalMetadata);
                 }
 
                 _speakers.Add(speaker);
@@ -90,8 +88,8 @@ public class SessionizePlugin : IDisposable
         return _speakers;
     }
 
-    [SKFunction, Description("Searches the sessions and speakers for relevant information")]
-    public async Task<string> Search([Description("The speaker, session, or topic of interest")] string query)
+    [SKFunction, Description("Searches the sessions and speakers in memory for relevant information")]
+    public async Task<string> Search([SKName("query"), Description("Provide a long and verbose sentence about the speaker, session, or topic of interest")] string query)
     {
         if (_memory == null)
         {
