@@ -67,8 +67,10 @@ public class BatComputerLogger : ILogger, IDisposable
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+#pragma warning disable CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
+    public IDisposable? BeginScope<TState>(TState state)
         => null;
+#pragma warning restore CS8766 // Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).
 
     public void Dispose() => _writer?.Dispose();
 

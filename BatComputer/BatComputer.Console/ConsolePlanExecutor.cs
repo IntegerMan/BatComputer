@@ -88,17 +88,6 @@ public class ConsolePlanExecutor
                 Skin.WriteException(ex);
             }
         }
-        catch (HttpOperationException ex)
-        {
-            if (ex.Message.Contains("content management policy", StringComparison.OrdinalIgnoreCase))
-            {
-                Skin.WriteErrorLine("The message or its response was flagged for inappropriate content and could not be processed");
-            } 
-            else
-            {
-                Skin.WriteException(ex);
-            }
-        }
         catch (Exception ex)
         {
             Skin.WriteException(ex);

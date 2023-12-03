@@ -3,18 +3,19 @@ using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.Kernel.FileMemoryStore;
 using MattEland.BatComputer.Kernel.Plugins;
-using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
+using System.Text.Json;
 
 namespace MattEland.BatComputer.Kernel;
 
@@ -68,7 +69,7 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
-        Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
+        // Kernel.ImportFunctions(new CameraPlugin(this), "Camera"); // Works, but its presence flags content filtering on sexual content
 
         if (settings.SupportsAiServices)
         {
@@ -133,8 +134,23 @@ public class AppKernel : IAppKernel, IDisposable
             throw new InvalidOperationException("No plan has been generated. Generate a plan first.");
         }
 
-        FunctionResult result = await LastPlan.InvokeAsync(Kernel);
-        PlanExecutionResult executionResult = result.ToExecutionResult(LastPlan);
+        PlanExecutionResult? executionResult = null;
+        try
+        {
+            FunctionResult result = await LastPlan.InvokeAsync(Kernel);
+            executionResult = result.ToExecutionResult(LastPlan);
+        }
+        catch (HttpOperationException ex)
+        {
+            executionResult = new PlanExecutionResult()
+            {
+                StepsCount = LastPlan.Steps.Count,
+                FunctionsUsed = string.Join(", ", LastPlan.Steps.Select(s => s.Name)),
+                Iterations = 1,
+                Summary = new List<StepSummary>(0),
+                Output = HandleContentModerationResult(ex.ResponseContent) ?? ex.Message
+            };
+        }
 
         // Ensure the log has fully updated
         _loggerFactory.Flush();
@@ -142,7 +158,42 @@ public class AppKernel : IAppKernel, IDisposable
         AddWidget(new TokenUsageWidget(_tokenUsage));
 
         LastResult = executionResult;
-        return executionResult;
+
+        return executionResult ?? new PlanExecutionResult() { Output = "An unknown error occurred" };
+    }
+
+    private static string? HandleContentModerationResult(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        ContentResponse? response = JsonSerializer.Deserialize<ContentResponse>(json);
+        ContentFilterResult? filter = response?.error?.innererror?.content_filter_result;
+
+        if (filter != null)
+        {
+            string disclaimer = " This can be fixed by adjusting your prompt or by relaxing content moderation settings in Azure.";
+            if (filter.sexual.filtered)
+            {
+                return $"The request was flagged for {filter.sexual.severity} sexual content. {disclaimer}";
+            }
+            else if (filter.hate.filtered)
+            {
+                return $"The request was flagged for {filter.hate.severity} hate content. {disclaimer}";
+            }
+            else if (filter.self_harm.filtered)
+            {
+                return $"The request was flagged for {filter.self_harm.severity} self-harm content. {disclaimer}";
+            }
+            else if (filter.violence.filtered)
+            {
+                return $"The request was flagged for {filter.violence.severity} violent content. {disclaimer}";
+            }
+        }
+
+        return null;
     }
 
     public void Dispose() => ((IDisposable)_loggerFactory).Dispose();
