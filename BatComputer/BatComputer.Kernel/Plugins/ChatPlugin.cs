@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.Extensions.Logging;
 
 namespace MattEland.BatComputer.Kernel.Plugins;
 
@@ -20,6 +21,9 @@ public class ChatPlugin
         {
             return "No chat completion service is configured.";
         }
+
+        ILogger<ChatPlugin> logger = context.LoggerFactory.CreateLogger<ChatPlugin>();
+        logger.LogTrace($"ChatPlugin.GetPromptedReply: {prompt}");
 
         IReadOnlyList<IChatResult> completions = await chatService.GetChatCompletionsAsync(chatService.CreateNewChat(prompt));
 

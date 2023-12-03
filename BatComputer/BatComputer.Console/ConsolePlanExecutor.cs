@@ -61,14 +61,17 @@ public class ConsolePlanExecutor
 
         try
         {
-            PlanExecutionResult result = new();
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
+            PlanExecutionResult result = await _kernel.ExecutePlanAsync();
 
+                /*
             await AnsiConsole.Status().StartAsync("Executing…", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
 
                 result = await _kernel.ExecutePlanAsync();
             });
+                */
             // result.Dump();
 
             return result.Output;

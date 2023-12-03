@@ -36,7 +36,11 @@ public class BatComputerLogger : ILogger, IDisposable
         string logLine = $"{prefix,5}: {message}";
 
         _writer?.WriteLine(logLine);
-        Debug.WriteLine(logLine);
+
+        if (logLevel >= LogLevel.Information)
+        {
+            Console.WriteLine(message);
+        }
 
         // Extract token counts from the message
         Match match = _tokensRegEx.Match(message);

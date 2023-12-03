@@ -6,9 +6,13 @@ using MattEland.BatComputer.Kernel.Plugins;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
+using Microsoft.SemanticKernel.Http;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
@@ -21,7 +25,7 @@ namespace MattEland.BatComputer.Kernel;
 
 public class AppKernel : IAppKernel, IDisposable
 {
-    private readonly ISKFunction _chat;
+    //private readonly ISKFunction _chat;
     private Planner? _planner;
     private readonly BatComputerLoggerFactory _loggerFactory;
 
@@ -36,20 +40,22 @@ public class AppKernel : IAppKernel, IDisposable
         // This logger helps get accurate events from planners as not all planners tell the kernel when they incur token costs
         _loggerFactory = new BatComputerLoggerFactory(this);
 
+        // TODO: Optionally use non-Azure chat completion
+        IChatCompletion chatCompletion = new AzureOpenAIChatCompletion(
+            settings.OpenAiDeploymentName, 
+            settings.AzureOpenAiEndpoint, 
+            settings.AzureOpenAiKey, 
+            loggerFactory: _loggerFactory);
+
         // Build and configure the kernel
-        // TODO: Widget logic can probably move into an attached service
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
-            .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
+            .WithAIService<IChatCompletion>(null, new VerboseLoggingChatCompletion(chatCompletion, _loggerFactory))
             .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
             .Build();
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
         _planner = plannerStrategy?.BuildPlanner(Kernel);
-
-        // Chat plugin is core and should always be available
-        Kernel.ImportFunctions(new ChatPlugin(), "Chat");
-        _chat = Kernel.Functions.GetFunction("Chat", nameof(ChatPlugin.GetChatResponse));
 
         // Memory is important for providing additional context
         if (settings.SupportsMemory)
@@ -117,7 +123,7 @@ public class AppKernel : IAppKernel, IDisposable
         _tokenUsage.Clear();
 
         Plan plan = _planner is null
-            ? new Plan(_chat)
+            ? new Plan(userText)
             : await _planner.CreatePlanAsync(userText);
 
         // Ensure the log has fully updated
