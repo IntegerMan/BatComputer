@@ -35,19 +35,26 @@ public class SessionizePlugin : IDisposable
             {
                 if (_memory != null)
                 {
-                    string text = BuildSessionString(session);
-                    string description = $"Session '{session.Title}'";
-
-                    if (session.Speakers.Count == 1)
+                    try
                     {
-                        description += $" by {session.Speakers.First().Name}";
-                    }
-                    else if (session.Speakers.Count > 1)
-                    {
-                        description += $" by {string.Join(", ", session.Speakers.Select(s => s.Name))}";
-                    }
+                        string text = BuildSessionString(session);
+                        string description = $"Session '{session.Title}'";
 
-                    await _memory.SaveInformationAsync(SessionsMemoryCollection, text, session.Id, description, additionalMetadata);
+                        if (session.Speakers.Count == 1)
+                        {
+                            description += $" by {session.Speakers.First().Name}";
+                        }
+                        else if (session.Speakers.Count > 1)
+                        {
+                            description += $" by {string.Join(", ", session.Speakers.Select(s => s.Name))}";
+                        }
+
+                        await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, session.Id, description, additionalMetadata);
+                    }
+                    catch (Exception)
+                    {
+                        // TODO: Logging this somewhere would be good.
+                    }
                 }
 
                 _sessions.Add(session);
@@ -70,15 +77,22 @@ public class SessionizePlugin : IDisposable
             {
                 if (_memory != null)
                 {
-                    string text = BuildSpeakerString(speaker);
-                    string description = $"Speaker {speaker.FullName}";
-
-                    if (speaker.Sessions.Count > 0)
+                    try
                     {
-                        description += $" speaking on {string.Join(", ", speaker.Sessions.Select(s => $"'{s.Name}'"))}";
-                    }
+                        string text = BuildSpeakerString(speaker);
+                        string description = $"Speaker {speaker.FullName}";
 
-                    await _memory.SaveInformationAsync(SessionsMemoryCollection, text, speaker.Id, description, additionalMetadata);
+                        if (speaker.Sessions.Count > 0)
+                        {
+                            description += $" speaking on {string.Join(", ", speaker.Sessions.Select(s => $"'{s.Name}'"))}";
+                        }
+
+                        await _memory.SaveReferenceAsync(SessionsMemoryCollection, text, speaker.Id, description, additionalMetadata);
+                    }
+                    catch (Exception)
+                    { 
+                        // TODO: Logging this somewhere would be good
+                    }
                 }
 
                 _speakers.Add(speaker);
@@ -96,7 +110,7 @@ public class SessionizePlugin : IDisposable
             return "I can't search sessions without a memory configured.";
         }
 
-        IAsyncEnumerable<MemoryQueryResult> results = 
+        IAsyncEnumerable<MemoryQueryResult> results =
             _memory.SearchAsync(SessionsMemoryCollection, query, limit: 5, minRelevanceScore: 0.5);
 
         StringBuilder sb = new();
@@ -303,7 +317,7 @@ public class SessionizePlugin : IDisposable
     {
         StringBuilder sb = new();
         bool isPast = session.EndsAt < DateTime.Now;
-        
+
         if (session.Speakers.Count == 1)
         {
             sb.Append($"{session.Speakers.First().Name} {(isPast ? "spoke on " : "is speaking on ")}");
@@ -342,7 +356,7 @@ public class SessionizePlugin : IDisposable
         return BuildSpeakerString(speaker);
     }
 
-    private static string BuildSpeakerString(Speaker speaker) 
+    private static string BuildSpeakerString(Speaker speaker)
         => $"{speaker.FullName} is speaking on the following sessions: {string.Join(", ", speaker.Sessions.Select(s => s.Name))}. Their bio follows: \r\n{speaker.Bio}";
 
     public void Dispose()
