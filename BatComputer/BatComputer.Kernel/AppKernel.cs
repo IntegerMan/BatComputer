@@ -1,4 +1,5 @@
-﻿using MattEland.BatComputer.Abstractions;
+﻿using BatComputer.Plugins.SubModules;
+using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.Kernel.FileMemoryStore;
@@ -18,10 +19,9 @@ using Microsoft.SemanticKernel.Plugins.Web.Bing;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class AppKernel : IAppKernel, IDisposable
+public class AppKernel : IAppKernel, IDisposable, IPlannerProvider
 {
     private readonly ISKFunction _chat;
-    private Planner? _planner;
     private readonly BatComputerLoggerFactory _loggerFactory;
 
     public IKernel Kernel { get; }
@@ -30,13 +30,14 @@ public class AppKernel : IAppKernel, IDisposable
 
     public ISemanticTextMemory? Memory { get; private set; }
 
-    public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
+    public IPlannerProvider PlanProvider { get; set; }
+
+    public AppKernel(KernelSettings settings, IPlannerProvider planProvider)
     {
         // This logger helps get accurate events from planners as not all planners tell the kernel when they incur token costs
         _loggerFactory = new BatComputerLoggerFactory(this);
 
         // Build and configure the kernel
-        // TODO: Widget logic can probably move into an attached service
         Kernel = new KernelBuilder()
             .WithLoggerFactory(_loggerFactory)
             .WithAzureOpenAIChatCompletionService(settings.OpenAiDeploymentName, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey)
@@ -44,7 +45,7 @@ public class AppKernel : IAppKernel, IDisposable
             .Build();
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
-        _planner = plannerStrategy?.BuildPlanner(Kernel);
+        PlanProvider = planProvider;
 
         // Chat plugin is core and should always be available
         Kernel.ImportFunctions(new ChatPlugin(), "Chat");
@@ -63,10 +64,13 @@ public class AppKernel : IAppKernel, IDisposable
             Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
         }
 
+        SubModule geoModule = new("Geo", "Information about places and weather conditions", this, Kernel);
+        geoModule.Add(new WeatherPlugin(this), "Weather");
+        geoModule.Add(new LatLongPlugin(this), "LatLong");
+        Kernel.ImportFunctions(geoModule, geoModule.PluginName);
+
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
-        Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
-        Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
         Kernel.ImportFunctions(new CameraPlugin(this), "Camera");
 
@@ -77,7 +81,7 @@ public class AppKernel : IAppKernel, IDisposable
 
         if (settings.SupportsSearch)
         {
-            var searchConnector = new BingConnector(settings.BingKey!);
+            IWebSearchEngineConnector searchConnector = new BingConnector(settings.BingKey!);
             Kernel.ImportFunctions(new WebSearchEnginePlugin(searchConnector), "Search");
         }
 
@@ -87,10 +91,8 @@ public class AppKernel : IAppKernel, IDisposable
         }
     }
 
-    public void SwitchPlanner(PlannerStrategy? plannerStrategy)
-    {
-        _planner = plannerStrategy?.BuildPlanner(Kernel);
-    }
+    public Task<Plan> CreatePlanAsync(string goal, IKernel kernel, IEnumerable<FunctionView> functions) 
+        => PlanProvider.CreatePlanAsync(goal, kernel, functions);
 
     public bool IsFunctionExcluded(FunctionView f)
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
@@ -115,9 +117,7 @@ public class AppKernel : IAppKernel, IDisposable
         Widgets.Clear();
         _tokenUsage.Clear();
 
-        Plan plan = _planner is null
-            ? new Plan(_chat)
-            : await _planner.CreatePlanAsync(userText);
+        Plan plan = await CreatePlanAsync(userText, Kernel, Kernel.Functions.GetFunctionViews());
 
         // Ensure the log has fully updated
         _loggerFactory.Flush();

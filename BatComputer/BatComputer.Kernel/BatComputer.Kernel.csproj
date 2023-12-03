@@ -21,6 +21,7 @@
 	  <ProjectReference Include="..\BatComputer.Kernel.FileMemoryStore\BatComputer.Kernel.FileMemoryStore.csproj" />
 	  <ProjectReference Include="..\BatComputer.Plugins.Camera\BatComputer.Plugins.Camera.csproj" />
 	  <ProjectReference Include="..\BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj" />
+	  <ProjectReference Include="..\BatComputer.Plugins.SubModules\BatComputer.Plugins.SubModules.csproj" />
 	  <ProjectReference Include="..\BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj" />
 	  <ProjectReference Include="..\BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj" />
 	</ItemGroup>

@@ -15,7 +15,7 @@ public class ChangePlannerCommand : AppCommand
     public override Task ExecuteAsync(AppKernel kernel)
     {
         PlannerStrategy planner = SelectPlanner(Skin);
-        kernel.SwitchPlanner(planner);
+        //kernel.SwitchPlanner(planner);
 
         return Task.CompletedTask;
     }

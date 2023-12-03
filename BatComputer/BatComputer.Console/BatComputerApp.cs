@@ -54,8 +54,9 @@ public class BatComputerApp : IDisposable
         }
 
         // Configure the application
-        PlannerStrategy planner = ChangePlannerCommand.SelectPlanner(Skin);
-        Kernel = new(Settings, planner);
+        //PlannerStrategy planner = ChangePlannerCommand.SelectPlanner(Skin);
+        SamplePlannerProvider planProvider = new();
+        Kernel = new(Settings, planProvider);
 
         // Show plugins now that they're paying attention
         OutputHelpers.DisplayPendingWidgets(this, Kernel);
