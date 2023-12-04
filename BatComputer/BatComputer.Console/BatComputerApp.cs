@@ -9,6 +9,7 @@ using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.Speech;
 using Spectre.Console;
+using MattEland.BatComputer.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -55,7 +56,7 @@ public class BatComputerApp : IDisposable
 
         // Configure the application
         PlannerStrategy planner = ChangePlannerCommand.SelectPlanner(Skin);
-        Kernel = new(Settings, planner);
+        Kernel = new(Settings, planner, new BatComputerLoggerFactory(this));
 
         // Show plugins now that they're paying attention
         OutputHelpers.DisplayPendingWidgets(this, Kernel);
@@ -100,7 +101,26 @@ public class BatComputerApp : IDisposable
 
     public void Dispose()
     {
-        Kernel?.Dispose();
         Speech?.Dispose();
     }
+
+    public void ReportTokenUsage(int promptTokens, int completionTokens)
+    {
+        _tokenUsage.Add(new TokenUsage(promptTokens, TokenUsageType.Prompt));
+        _tokenUsage.Add(new TokenUsage(completionTokens, TokenUsageType.Completion));
+    }
+
+    public void RenderTokenUsage()
+    {
+        if (_tokenUsage.Count > 0)
+        {
+            TokenUsageWidget widget = new(_tokenUsage);
+            widget.Render(Skin);
+
+            _tokenUsage.Clear();
+        }
+    }
+
+    private readonly List<TokenUsage> _tokenUsage = new();
+
 }

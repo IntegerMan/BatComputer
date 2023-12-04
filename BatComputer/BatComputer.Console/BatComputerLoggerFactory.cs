@@ -1,13 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MattEland.BatComputer.Kernel;
+using Microsoft.Extensions.Logging;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.ConsoleApp;
 
 public class BatComputerLoggerFactory : ILoggerFactory
 {
-    private readonly AppKernel _app;
+    private readonly BatComputerApp _app;
     private readonly BatComputerLogger _logger;
 
-    public BatComputerLoggerFactory(AppKernel app)
+    public BatComputerLoggerFactory(BatComputerApp app)
     {
         _app = app;
         _logger = new BatComputerLogger(app);

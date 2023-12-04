@@ -3,6 +3,7 @@ using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.Kernel.FileMemoryStore;
 using MattEland.BatComputer.Kernel.Plugins;
+using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
@@ -12,7 +13,6 @@ using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Http;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
@@ -23,11 +23,10 @@ using System.Text.Json;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class AppKernel : IAppKernel, IDisposable
+public class AppKernel : IAppKernel
 {
     //private readonly ISKFunction _chat;
     private Planner? _planner;
-    private readonly BatComputerLoggerFactory _loggerFactory;
 
     public IKernel Kernel { get; }
 
@@ -35,22 +34,19 @@ public class AppKernel : IAppKernel, IDisposable
 
     public ISemanticTextMemory? Memory { get; private set; }
 
-    public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy)
+    public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy, ILoggerFactory loggerFactory)
     {
-        // This logger helps get accurate events from planners as not all planners tell the kernel when they incur token costs
-        _loggerFactory = new BatComputerLoggerFactory(this);
-
         // TODO: Optionally use non-Azure chat completion
         IChatCompletion chatCompletion = new AzureOpenAIChatCompletion(
             settings.OpenAiDeploymentName, 
             settings.AzureOpenAiEndpoint, 
             settings.AzureOpenAiKey, 
-            loggerFactory: _loggerFactory);
+            loggerFactory: loggerFactory);
 
         // Build and configure the kernel
         Kernel = new KernelBuilder()
-            .WithLoggerFactory(_loggerFactory)
-            .WithAIService<IChatCompletion>(null, new VerboseLoggingChatCompletion(chatCompletion, _loggerFactory))
+            .WithLoggerFactory(loggerFactory)
+            .WithAIService<IChatCompletion>(null, new VerboseLoggingChatCompletion(chatCompletion, loggerFactory))
             .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
             .Build();
 
@@ -63,7 +59,7 @@ public class AppKernel : IAppKernel, IDisposable
             MemoryCollectionName = settings.EmbeddingCollectionName;
             MemoryStore = new FileBackedMemory("MemoryStore.json");
             Memory = new MemoryBuilder()
-                .WithLoggerFactory(_loggerFactory)
+                .WithLoggerFactory(loggerFactory)
                 .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
                 .WithMemoryStore(MemoryStore)
                 .Build();
@@ -75,7 +71,7 @@ public class AppKernel : IAppKernel, IDisposable
         Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
         Kernel.ImportFunctions(new MePlugin(settings, this), "User");
-        // Kernel.ImportFunctions(new CameraPlugin(this), "Camera"); // Works, but its presence flags content filtering on sexual content
+        Kernel.ImportFunctions(new CameraPlugin(this), "Camera"); // Works, but its presence flags content filtering on sexual content
 
         if (settings.SupportsAiServices)
         {
@@ -120,14 +116,10 @@ public class AppKernel : IAppKernel, IDisposable
         LastResult = null;
         LastGoal = userText;
         Widgets.Clear();
-        _tokenUsage.Clear();
 
         Plan plan = _planner is null
             ? new Plan(userText)
             : await _planner.CreatePlanAsync(userText);
-
-        // Ensure the log has fully updated
-        _loggerFactory.Flush();
 
         LastPlan = plan;
         return plan;
@@ -157,11 +149,6 @@ public class AppKernel : IAppKernel, IDisposable
                 Output = HandleContentModerationResult(ex.ResponseContent) ?? ex.Message
             };
         }
-
-        // Ensure the log has fully updated
-        _loggerFactory.Flush();
-
-        AddWidget(new TokenUsageWidget(_tokenUsage));
 
         LastResult = executionResult;
 
@@ -201,14 +188,4 @@ public class AppKernel : IAppKernel, IDisposable
 
         return null;
     }
-
-    public void Dispose() => ((IDisposable)_loggerFactory).Dispose();
-
-    public void ReportTokenUsage(int promptTokens, int completionTokens)
-    {
-        _tokenUsage.Add(new TokenUsage(promptTokens, TokenUsageType.Prompt));
-        _tokenUsage.Add(new TokenUsage(completionTokens, TokenUsageType.Completion));
-    }
-
-    private readonly List<TokenUsage> _tokenUsage = new();
 }

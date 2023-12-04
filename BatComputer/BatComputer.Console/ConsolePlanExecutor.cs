@@ -5,6 +5,8 @@ using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Abstractions.Strategies;
+using MattEland.BatComputer.Abstractions.Widgets;
+using MattEland.BatComputer.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -61,17 +63,20 @@ public class ConsolePlanExecutor
 
         try
         {
+            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
+            AnsiConsole.WriteLine();
             PlanExecutionResult result = await _kernel.ExecutePlanAsync();
+            _app.RenderTokenUsage();
 
-                /*
-            await AnsiConsole.Status().StartAsync("Executing…", async ctx =>
-            {
-                ctx.Spinner = Skin.Spinner;
+            /*
+        await AnsiConsole.Status().StartAsync("Executing…", async ctx =>
+        {
+            ctx.Spinner = Skin.Spinner;
 
-                result = await _kernel.ExecutePlanAsync();
-            });
-                */
+            result = await _kernel.ExecutePlanAsync();
+        });
+            */
             // result.Dump();
 
             return result.Output;
