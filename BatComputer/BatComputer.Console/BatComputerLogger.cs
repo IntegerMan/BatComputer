@@ -55,7 +55,8 @@ public class BatComputerLogger : ILogger, IDisposable
         }
         else if (logLevel >= LogLevel.Information)
         {
-            if (message.StartsWith("StepwisePlanner_Excluded.ExecutePlan:", StringComparison.OrdinalIgnoreCase))
+            if (message.StartsWith("StepwisePlanner_Excluded.ExecutePlan:", StringComparison.OrdinalIgnoreCase) || 
+                message.Contains("GenerateEmbeddingsAsync", StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }

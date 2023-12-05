@@ -28,9 +28,10 @@ public static class OutputHelpers
             return;
         }
 
-        AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}: {Markup.Escape(chatResponse)}[/]");
-        app.SpeakAsync(chatResponse);
+        AnsiConsole.MarkupLine($"[{app.Skin.AgentStyle}]{Markup.Escape(app.Skin.AgentName)}:[/] [{app.Skin.DebugStyle}]{Markup.Escape(chatResponse)}[/]");
         AnsiConsole.WriteLine();
+
+        app.SpeakAsync(chatResponse);
     }
 
     public static void DisplayPendingWidgets(BatComputerApp app, IAppKernel kernel)

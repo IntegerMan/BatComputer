@@ -5,8 +5,6 @@ using Microsoft.SemanticKernel.Planning;
 using Spectre.Console;
 using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Abstractions.Strategies;
-using MattEland.BatComputer.Abstractions.Widgets;
-using MattEland.BatComputer.Abstractions;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -25,15 +23,23 @@ public class ConsolePlanExecutor
 
     public async Task<string?> GetKernelPromptResponseAsync(string prompt)
     {
-        Plan plan;
         try
         {
+            Plan plan;
             await AnsiConsole.Status().StartAsync("Planning…", async ctx =>
             {
                 ctx.Spinner(Skin.Spinner);
 
                 plan = await _kernel.PlanAsync(prompt);
             });
+
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
+            AnsiConsole.WriteLine();
+            PlanExecutionResult result = await _kernel.ExecutePlanAsync();
+            _app.RenderTokenUsage();
+
+            return result.Output;
         }
         catch (SKException ex)
         {
@@ -43,47 +49,7 @@ public class ConsolePlanExecutor
             {
                 Skin.WriteErrorLine("It was not possible to fulfill this request with the available skills.");
             }
-            else
-            {
-                // Not an impossible plan. Display additional details
-                Skin.WriteException(ex);
-                Skin.WriteErrorLine("Could not generate a plan.");
-            }
-
-            return null;
-        }
-        catch (InvalidCastException ex)
-        {
-            // Invalid Cast can happen with llamaSharp
-            Skin.WriteException(ex);
-            Skin.WriteErrorLine("Could not generate a plan.");
-
-            return null;
-        }
-
-        try
-        {
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
-            AnsiConsole.WriteLine();
-            PlanExecutionResult result = await _kernel.ExecutePlanAsync();
-            _app.RenderTokenUsage();
-
-            /*
-        await AnsiConsole.Status().StartAsync("Executing…", async ctx =>
-        {
-            ctx.Spinner = Skin.Spinner;
-
-            result = await _kernel.ExecutePlanAsync();
-        });
-            */
-            // result.Dump();
-
-            return result.Output;
-        }
-        catch (SKException ex)
-        {
-            if (ex.Message.Contains("History is too long", StringComparison.OrdinalIgnoreCase))
+            else if (ex.Message.Contains("History is too long", StringComparison.OrdinalIgnoreCase))
             {
                 Skin.WriteErrorLine("The planner caused too many tokens to be used to fulfill the request. There may be too many functions enabled.");
             } 
@@ -95,6 +61,14 @@ public class ConsolePlanExecutor
             {
                 Skin.WriteException(ex);
             }
+        }
+        catch (InvalidCastException ex)
+        {
+            // Invalid Cast can happen with llamaSharp
+            Skin.WriteException(ex);
+            Skin.WriteErrorLine("Could not generate a plan.");
+
+            return null;
         }
         catch (Exception ex)
         {

@@ -25,7 +25,6 @@ namespace MattEland.BatComputer.Kernel;
 
 public class AppKernel : IAppKernel
 {
-    //private readonly ISKFunction _chat;
     private Planner? _planner;
 
     public IKernel Kernel { get; }
@@ -63,7 +62,7 @@ public class AppKernel : IAppKernel
                 .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
                 .WithMemoryStore(MemoryStore)
                 .Build();
-            Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
+            // Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
         }
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
