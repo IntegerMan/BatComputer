@@ -15,7 +15,6 @@ public class RootMenu : MenuBase
             yield return new ChatCommand(App);
             yield return new VoiceCommand(App);
             yield return new ShowResultTreeCommand(App);
-            yield return new RetryCommand(App);
             yield return new ChangePlannerCommand(App);
 
             yield return new SubmenuCommand(App, "Diagnostics", new DiagnosticsMenu(App));

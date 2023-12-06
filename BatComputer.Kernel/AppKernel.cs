@@ -1,6 +1,4 @@
-﻿using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.Abstractions.Strategies;
-using MattEland.BatComputer.Abstractions.Widgets;
+﻿using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Kernel.FileMemoryStore;
 using MattEland.BatComputer.Kernel.Plugins;
 using MattEland.BatComputer.Plugins.Camera;
@@ -23,7 +21,7 @@ using System.Text.Json;
 
 namespace MattEland.BatComputer.Kernel;
 
-public class AppKernel : IAppKernel
+public class AppKernel
 {
     private Planner? _planner;
 
@@ -67,14 +65,14 @@ public class AppKernel : IAppKernel
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
-        Kernel.ImportFunctions(new WeatherPlugin(this), "Weather");
-        Kernel.ImportFunctions(new LatLongPlugin(this), "LatLong");
-        Kernel.ImportFunctions(new MePlugin(settings, this), "User");
-        Kernel.ImportFunctions(new CameraPlugin(this), "Camera"); // Works, but its presence flags content filtering on sexual content
+        Kernel.ImportFunctions(new WeatherPlugin(), "Weather");
+        Kernel.ImportFunctions(new LatLongPlugin(), "LatLong");
+        Kernel.ImportFunctions(new MePlugin(), "User");
+        Kernel.ImportFunctions(new CameraPlugin(), "Camera"); // Works, but its presence flags content filtering on sexual content
 
         if (settings.SupportsAiServices)
         {
-            Kernel.ImportFunctions(new VisionPlugin(this, settings.AzureAiServicesEndpoint, settings.AzureAiServicesKey), "Vision");
+            Kernel.ImportFunctions(new VisionPlugin(settings.AzureAiServicesEndpoint, settings.AzureAiServicesKey), "Vision");
         }
 
         if (settings.SupportsSearch)
@@ -97,24 +95,15 @@ public class AppKernel : IAppKernel
     public bool IsFunctionExcluded(FunctionView f)
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
 
-    public string? LastMessage { get; private set; }
-    public string? LastGoal { get; private set; }
     public PlanExecutionResult? LastResult { get; set; }
 
-    public Queue<IWidget> Widgets { get; } = new();
-    public string SystemText { get; set; } = "You are an AI assistant named Alfred, the virtual butler to Batman. The user is Batman.";
     public string? MemoryCollectionName { get; } = "BatComputer";
     public IMemoryStore? MemoryStore { get; }
-
-    public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
     public async Task<PlanExecutionResult> ExecuteAsync(string userText)
     {
         LastPlan = null;
-        LastMessage = userText;
         LastResult = null;
-        LastGoal = userText;
-        Widgets.Clear();
 
         Plan plan = _planner is null
             ? new Plan(userText)

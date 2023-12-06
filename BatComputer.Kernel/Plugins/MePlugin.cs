@@ -5,15 +5,6 @@ namespace MattEland.BatComputer.Kernel.Plugins;
 
 public class MePlugin
 {
-    private readonly KernelSettings _settings;
-    private readonly AppKernel _kernel;
-
-    public MePlugin(KernelSettings settings, AppKernel kernel)
-    {
-        _settings = settings;
-        _kernel = kernel;
-    }
-
     [SKFunction, Description("Gets the user's current zip code")]
     public string GetZipCode()
     {

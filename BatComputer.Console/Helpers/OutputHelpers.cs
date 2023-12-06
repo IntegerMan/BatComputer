@@ -18,9 +18,9 @@ public static class OutputHelpers
         AnsiConsole.WriteLine();
     }
 
-    public static void DisplayChatResponse(BatComputerApp app, IAppKernel kernel, string? chatResponse)
+    public static void DisplayChatResponse(BatComputerApp app, string? chatResponse)
     {
-        DisplayPendingWidgets(app, kernel);
+        DisplayPendingWidgets(app);
 
         if (string.IsNullOrWhiteSpace(chatResponse))
         {
@@ -34,11 +34,11 @@ public static class OutputHelpers
         app.SpeakAsync(chatResponse);
     }
 
-    public static void DisplayPendingWidgets(BatComputerApp app, IAppKernel kernel)
+    public static void DisplayPendingWidgets(BatComputerApp app)
     {
-        while (kernel.Widgets.Any())
+        while (app.Widgets.Any())
         {
-            IWidget widget = kernel.Widgets.Dequeue();
+            IWidget widget = app.Widgets.Dequeue();
             widget.Render(app.Skin);
         }
     }

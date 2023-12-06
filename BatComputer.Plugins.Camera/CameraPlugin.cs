@@ -1,19 +1,11 @@
 ﻿using System.ComponentModel;
 using FlashCap;
-using MattEland.BatComputer.Abstractions;
-using MattEland.BatComputer.Abstractions.Widgets;
 using Microsoft.SemanticKernel;
 
 namespace MattEland.BatComputer.Plugins.Camera;
 
 public class CameraPlugin
 {
-    private readonly IAppKernel _kernel;
-
-    public CameraPlugin(IAppKernel kernel)
-    {
-        _kernel = kernel;
-    }
     
     [SKFunction, Description("Gets an image from the user's camera, saves it to disk, and returns the path of that image")]
     public async Task<string> GetImageAsync()
@@ -37,7 +29,7 @@ public class CameraPlugin
         await File.WriteAllBytesAsync(fileName, imageData);
 
         // Register and return it
-        _kernel.AddWidget(new ImageFileWidget(fileName));
+        // TODO: _kernel.AddWidget(new ImageFileWidget(fileName));
         return fileName;
     }
 

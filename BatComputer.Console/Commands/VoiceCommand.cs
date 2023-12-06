@@ -26,7 +26,7 @@ public class VoiceCommand : AppCommand
             ConsolePlanExecutor executor = new(App, kernel);
             string? response = await executor.GetKernelPromptResponseAsync(prompt);
 
-            OutputHelpers.DisplayChatResponse(App, kernel, response);
+            OutputHelpers.DisplayChatResponse(App, response);
         }
         else
         {

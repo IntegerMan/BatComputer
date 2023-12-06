@@ -8,8 +8,8 @@ using MattEland.BatComputer.ConsoleApp.Menus;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.Speech;
-using Spectre.Console;
 using MattEland.BatComputer.Abstractions;
+using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -59,7 +59,7 @@ public class BatComputerApp : IDisposable
         Kernel = new(Settings, planner, new BatComputerLoggerFactory(this));
 
         // Show plugins now that they're paying attention
-        OutputHelpers.DisplayPendingWidgets(this, Kernel);
+        OutputHelpers.DisplayPendingWidgets(this);
         AnsiConsole.WriteLine();
         Kernel.RenderKernelPluginsChart(Skin);
         AnsiConsole.WriteLine();
@@ -78,6 +78,7 @@ public class BatComputerApp : IDisposable
     public Stack<MenuBase> Menus { get; } = new();
     public KernelSettings Settings { get; } = new();
     public SpeechProvider? Speech { get; private set; }
+    public Queue<IWidget> Widgets { get; } = new();
 
     private async Task RunMainLoopAsync()
     {

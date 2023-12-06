@@ -1,14 +1,9 @@
-﻿using MattEland.BatComputer.Abstractions;
-
-namespace MattEland.BatComputer.Plugins.Weather.Plugins;
+﻿namespace MattEland.BatComputer.Plugins.Weather.Plugins;
 
 public abstract class OpenMeteoPlugin
 {
-    public IAppKernel Kernel { get; }
-
-    protected OpenMeteoPlugin(IAppKernel kernel)
+    protected OpenMeteoPlugin()
     {
-        Kernel = kernel;
     }
 
     protected static async Task<string> GetJsonFromRestRequestAsync(string url)

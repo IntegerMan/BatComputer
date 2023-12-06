@@ -10,12 +10,10 @@ namespace MattEland.BatComputer.Plugins.Vision;
 
 public class VisionPlugin
 {
-    private readonly IAppKernel _kernel;
     private readonly VisionServiceOptions _visionOptions;
 
-    public VisionPlugin(IAppKernel kernel, string endpoint, string apiKey)
+    public VisionPlugin(string endpoint, string apiKey)
     {
-        _kernel = kernel;
         AzureKeyCredential credentials = new(apiKey);
         _visionOptions = new VisionServiceOptions(endpoint, credentials);
     }

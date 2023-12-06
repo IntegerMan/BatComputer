@@ -10,9 +10,6 @@ namespace MattEland.BatComputer.Plugins.Weather.Plugins;
 
 public class WeatherPlugin : OpenMeteoPlugin
 {
-    public WeatherPlugin(IAppKernel kernel) : base(kernel)
-    {
-    }
 
     [SKFunction, Description("Gets current weather conditions from a latitude and longitude. This should not be used for predicting weather.")]
     public async Task<string> GetCurrentWeatherFromLatLong(
@@ -73,7 +70,7 @@ public class WeatherPlugin : OpenMeteoPlugin
             sb.Append(" It is currently raining");
         }
 
-        Kernel.AddWidget(widget);
+        // TODO: Kernel.AddWidget(widget);
 
         return sb.ToString();
     }
