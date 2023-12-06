@@ -108,7 +108,7 @@ public class AppKernel : IAppKernel
 
     public void AddWidget(IWidget widget) => Widgets.Enqueue(widget);
 
-    public async Task<Plan> PlanAsync(string userText)
+    public async Task<PlanExecutionResult> ExecuteAsync(string userText)
     {
         LastPlan = null;
         LastMessage = userText;
@@ -121,30 +121,21 @@ public class AppKernel : IAppKernel
             : await _planner.CreatePlanAsync(userText);
 
         LastPlan = plan;
-        return plan;
-    }
-
-    public async Task<PlanExecutionResult> ExecutePlanAsync()
-    {
-        if (LastPlan == null)
-        {
-            throw new InvalidOperationException("No plan has been generated. Generate a plan first.");
-        }
 
         PlanExecutionResult? executionResult = null;
         try
         {
-            FunctionResult result = await LastPlan.InvokeAsync(Kernel);
-            executionResult = result.ToExecutionResult(LastPlan);
+            FunctionResult result = await plan.InvokeAsync(Kernel);
+            executionResult = result.ToExecutionResult(plan);
         }
         catch (HttpOperationException ex)
         {
             executionResult = new PlanExecutionResult()
             {
-                StepsCount = LastPlan.Steps.Count,
+                StepsCount = plan.Steps.Count,
                 FunctionsUsed = string.Join(", ", LastPlan.Steps.Select(s => s.Name)),
                 Iterations = 1,
-                Summary = new List<StepSummary>(0),
+                Summary = [],
                 Output = HandleContentModerationResult(ex.ResponseContent) ?? ex.Message
             };
         }

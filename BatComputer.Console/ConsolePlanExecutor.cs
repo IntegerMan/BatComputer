@@ -25,18 +25,10 @@ public class ConsolePlanExecutor
     {
         try
         {
-            Plan plan;
-            await AnsiConsole.Status().StartAsync("Planning…", async ctx =>
-            {
-                ctx.Spinner(Skin.Spinner);
-
-                plan = await _kernel.PlanAsync(prompt);
-            });
-
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
             AnsiConsole.WriteLine();
-            PlanExecutionResult result = await _kernel.ExecutePlanAsync();
+            PlanExecutionResult result = await _kernel.ExecuteAsync(prompt);
             _app.RenderTokenUsage();
 
             return result.Output;
