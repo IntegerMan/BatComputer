@@ -17,9 +17,11 @@ public static class PlanTreeRenderer
 
     private static Tree BuildTree(Plan plan, ConsoleSkin skin)
     {
-        Tree planTree = new($"[{skin.NormalStyle}]{plan.PluginName}[/]:[{skin.AccentStyle}]{plan.Name}[/]");
+        string target = plan.Outputs.Count == 0 
+            ? "RESULT__RESPONSE"   // We shouldn't have had a plan with no outputs, but this is a good key to use just in case
+            : plan.Outputs.Last(); // Either we have 1 or more than 1 output variable. In either case, let's go with the last entry as the most likely usable one
 
-        string target = plan.GetTarget();
+        Tree planTree = new($"[{skin.NormalStyle}]{plan.PluginName}[/]:[{skin.AccentStyle}]{plan.Name}[/]");
 
         PopulateTree(plan, skin, planTree, target);
 

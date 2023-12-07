@@ -1,7 +1,7 @@
 ﻿using MattEland.BatComputer.Abstractions.Strategies;
+using MattEland.BatComputer.Kernel.ContentFiltering;
 using MattEland.BatComputer.Kernel.FileMemoryStore;
 using MattEland.BatComputer.Kernel.Plugins;
-using MattEland.BatComputer.Plugins.Camera;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
 using MattEland.BatComputer.Plugins.Weather.Plugins;
@@ -68,7 +68,7 @@ public class AppKernel
         Kernel.ImportFunctions(new WeatherPlugin(), "Weather");
         Kernel.ImportFunctions(new LatLongPlugin(), "LatLong");
         Kernel.ImportFunctions(new MePlugin(), "User");
-        Kernel.ImportFunctions(new CameraPlugin(), "Camera"); // Works, but its presence flags content filtering on sexual content
+//        Kernel.ImportFunctions(new CameraPlugin(), "Camera"); // Works, but its presence flags content filtering on sexual content
 
         if (settings.SupportsAiServices)
         {
@@ -100,7 +100,7 @@ public class AppKernel
     public string? MemoryCollectionName { get; } = "BatComputer";
     public IMemoryStore? MemoryStore { get; }
 
-    public async Task<PlanExecutionResult> ExecuteAsync(string userText)
+    public async Task<string> ExecuteAsync(string userText)
     {
         LastPlan = null;
         LastResult = null;
@@ -110,6 +110,8 @@ public class AppKernel
             : await _planner.CreatePlanAsync(userText);
 
         LastPlan = plan;
+
+        string? output = null;
 
         PlanExecutionResult? executionResult = null;
         try
@@ -130,8 +132,9 @@ public class AppKernel
         }
 
         LastResult = executionResult;
+        output = executionResult.Output;
 
-        return executionResult ?? new PlanExecutionResult() { Output = "An unknown error occurred" };
+        return output ?? "An unknown error occurred";
     }
 
     private static string? HandleContentModerationResult(string? json)

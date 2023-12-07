@@ -2,11 +2,11 @@
 
 public class TokenUsageWidget : WidgetBase
 {
-    public TokenUsageWidget() : this(Enumerable.Empty<TokenUsage>())
+    public TokenUsageWidget()
     {
     }
 
-    public TokenUsageWidget(IEnumerable<TokenUsage> tokens)
+    public TokenUsageWidget(params TokenUsage[] tokens)
     {
         int promptTokens = tokens.Where(t => t.UsageType == TokenUsageType.Prompt).Sum(t => t.TokenCount);
         int completionTokens = tokens.Where(t => t.UsageType == TokenUsageType.Completion).Sum(t => t.TokenCount);

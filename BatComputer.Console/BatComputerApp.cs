@@ -10,6 +10,7 @@ using MattEland.BatComputer.ConsoleApp.Skins;
 using MattEland.BatComputer.Speech;
 using MattEland.BatComputer.Abstractions;
 using Spectre.Console;
+using Microsoft.SemanticKernel.Diagnostics;
 
 namespace MattEland.BatComputer.ConsoleApp;
 
@@ -59,8 +60,6 @@ public class BatComputerApp : IDisposable
         Kernel = new(Settings, planner, new BatComputerLoggerFactory(this));
 
         // Show plugins now that they're paying attention
-        OutputHelpers.DisplayPendingWidgets(this);
-        AnsiConsole.WriteLine();
         Kernel.RenderKernelPluginsChart(Skin);
         AnsiConsole.WriteLine();
 
@@ -78,7 +77,6 @@ public class BatComputerApp : IDisposable
     public Stack<MenuBase> Menus { get; } = new();
     public KernelSettings Settings { get; } = new();
     public SpeechProvider? Speech { get; private set; }
-    public Queue<IWidget> Widgets { get; } = new();
 
     private async Task RunMainLoopAsync()
     {
@@ -100,28 +98,62 @@ public class BatComputerApp : IDisposable
 
     public Task SpeakAsync(string message) => Speech?.SpeakAsync(message) ?? Task.CompletedTask;
 
-    public void Dispose()
-    {
-        Speech?.Dispose();
-    }
+    public void Dispose() => Speech?.Dispose();
 
     public void ReportTokenUsage(int promptTokens, int completionTokens)
     {
-        _tokenUsage.Add(new TokenUsage(promptTokens, TokenUsageType.Prompt));
-        _tokenUsage.Add(new TokenUsage(completionTokens, TokenUsageType.Completion));
+        TokenUsageWidget widget = new(new TokenUsage(promptTokens, TokenUsageType.Prompt), 
+                                      new TokenUsage(completionTokens, TokenUsageType.Completion));
+
+        widget.Render(Skin);
     }
 
-    public void RenderTokenUsage()
-    {
-        if (_tokenUsage.Count > 0)
-        {
-            TokenUsageWidget widget = new(_tokenUsage);
-            widget.Render(Skin);
 
-            _tokenUsage.Clear();
+    public async Task SendUserQueryAsync(string prompt)
+    {
+        if (Kernel == null)
+        {
+            throw new InvalidOperationException("Kernel must be initialized");
+        }
+
+        try
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]Executing…[/]");
+            AnsiConsole.WriteLine();
+            await Kernel.ExecuteAsync(prompt);
+        }
+        catch (SKException ex)
+        {
+            // It's possible to reach the limits of what's possible with the planner. When that happens, handle it gracefully
+            if (ex.Message.Contains("Not possible to create plan for goal", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("Unable to create plan for goal with available functions", StringComparison.OrdinalIgnoreCase))
+            {
+                Skin.WriteErrorLine("It was not possible to fulfill this request with the available skills.");
+            }
+            else if (ex.Message.Contains("History is too long", StringComparison.OrdinalIgnoreCase))
+            {
+                Skin.WriteErrorLine("The planner caused too many tokens to be used to fulfill the request. There may be too many functions enabled.");
+            }
+            else if (ex.Message.Contains("Missing value for parameter"))
+            {
+                Skin.WriteErrorLine(ex.Message);
+            }
+            else
+            {
+                Skin.WriteException(ex);
+            }
+        }
+        catch (InvalidCastException ex)
+        {
+            // Invalid Cast can happen with llamaSharp
+            Skin.WriteException(ex);
+            Skin.WriteErrorLine("Could not generate a plan.");
+        }
+        catch (Exception ex)
+        {
+            Skin.WriteException(ex);
         }
     }
-
-    private readonly List<TokenUsage> _tokenUsage = new();
 
 }

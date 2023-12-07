@@ -1,4 +1,5 @@
-﻿
+﻿namespace MattEland.BatComputer.Kernel.ContentFiltering;
+
 public class ContentError
 {
     public string message { get; set; }

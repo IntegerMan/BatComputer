@@ -1,5 +1,4 @@
 ﻿using Dumpify;
-using MattEland.BatComputer.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
 using MattEland.BatComputer.ConsoleApp.Renderables;
 using Newtonsoft.Json;
@@ -20,8 +19,6 @@ public static class OutputHelpers
 
     public static void DisplayChatResponse(BatComputerApp app, string? chatResponse)
     {
-        DisplayPendingWidgets(app);
-
         if (string.IsNullOrWhiteSpace(chatResponse))
         {
             DisplayWarning(app.Skin, "No response was provided");
@@ -32,15 +29,6 @@ public static class OutputHelpers
         AnsiConsole.WriteLine();
 
         app.SpeakAsync(chatResponse);
-    }
-
-    public static void DisplayPendingWidgets(BatComputerApp app)
-    {
-        while (app.Widgets.Any())
-        {
-            IWidget widget = app.Widgets.Dequeue();
-            widget.Render(app.Skin);
-        }
     }
 
     public static void Render(this IWidget widget, ConsoleSkin skin)

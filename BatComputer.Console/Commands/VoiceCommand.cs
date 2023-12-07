@@ -23,10 +23,7 @@ public class VoiceCommand : AppCommand
             AnsiConsole.MarkupLine($"[{Skin.NormalStyle}]I heard:[/] {Markup.Escape(prompt)}");
             AnsiConsole.WriteLine();
 
-            ConsolePlanExecutor executor = new(App, kernel);
-            string? response = await executor.GetKernelPromptResponseAsync(prompt);
-
-            OutputHelpers.DisplayChatResponse(App, response);
+            await App.SendUserQueryAsync(prompt);
         }
         else
         {

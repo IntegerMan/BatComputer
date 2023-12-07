@@ -1,4 +1,6 @@
-﻿public class ContentFilterResult
+﻿namespace MattEland.BatComputer.Kernel.ContentFiltering;
+
+public class ContentFilterResult
 {
     public FilteredResult hate { get; set; }
     public FilteredResult self_harm { get; set; }

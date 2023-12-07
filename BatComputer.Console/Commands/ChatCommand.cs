@@ -11,10 +11,7 @@ public class ChatCommand : AppCommand
 
         if (!string.IsNullOrWhiteSpace(prompt))
         {
-            ConsolePlanExecutor executor = new(App, kernel);
-            string? response = await executor.GetKernelPromptResponseAsync(prompt);
-
-            OutputHelpers.DisplayChatResponse(App, response);
+            await App.SendUserQueryAsync(prompt);
         }
     }
 
