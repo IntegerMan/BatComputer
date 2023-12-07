@@ -4,7 +4,7 @@ using Spectre.Console;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace MattEland.BatComputer.ConsoleApp;
+namespace MattEland.BatComputer.ConsoleApp.Logging;
 
 public class BatComputerLogger : ILogger, IDisposable
 {
@@ -54,7 +54,7 @@ public class BatComputerLogger : ILogger, IDisposable
         }
         else if (logLevel >= LogLevel.Information)
         {
-            if (message.StartsWith("StepwisePlanner_Excluded.ExecutePlan:", StringComparison.OrdinalIgnoreCase) || 
+            if (message.StartsWith("StepwisePlanner_Excluded.ExecutePlan:", StringComparison.OrdinalIgnoreCase) ||
                 message.Contains("GenerateEmbeddingsAsync", StringComparison.OrdinalIgnoreCase))
             {
                 return;
@@ -87,7 +87,7 @@ public class BatComputerLogger : ILogger, IDisposable
             else
             {
                 AnsiConsole.WriteLine(message);
-           }
+            }
 
         }
     }

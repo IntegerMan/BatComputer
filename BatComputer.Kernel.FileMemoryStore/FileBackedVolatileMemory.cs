@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Numerics.Tensors;
 using System.Runtime.CompilerServices;
 
-namespace MattEland.BatComputer.Kernel.FileMemoryStore;
+namespace MattEland.BatComputer.Memory.FileMemoryStore;
 
 /// <summary>
 /// WARNING: This is not a serious memory store to use in production. This is designed to be a "good enough" concept of a store

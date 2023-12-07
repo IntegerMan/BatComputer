@@ -1,4 +1,4 @@
-﻿using MattEland.BatComputer.Kernel.FileMemoryStore;
+﻿using MattEland.BatComputer.Memory.FileMemoryStore;
 using Microsoft.SemanticKernel.Memory;
 using Spectre.Console;
 

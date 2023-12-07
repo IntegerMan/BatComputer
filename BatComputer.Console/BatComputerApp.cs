@@ -18,11 +18,12 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Planning;
 using Microsoft.SemanticKernel.Orchestration;
 using System.Text.Json;
-using MattEland.BatComputer.Kernel.ContentFiltering;
 using MattEland.BatComputer.Kernel.Plugins;
+using MattEland.BatComputer.Abstractions.ContentFiltering;
+using MattEland.BatComputer.ConsoleApp.Logging;
+using MattEland.BatComputer.Plugins.Weather.Plugins;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
-using MattEland.BatComputer.Plugins.Weather.Plugins;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using Microsoft.SemanticKernel.Plugins.Web;
 

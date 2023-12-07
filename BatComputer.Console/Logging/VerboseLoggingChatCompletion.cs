@@ -2,7 +2,7 @@
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.ConsoleApp.Logging;
 
 public class VerboseLoggingChatCompletion : IChatCompletion, IDisposable
 {

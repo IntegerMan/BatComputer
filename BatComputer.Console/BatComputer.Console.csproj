@@ -30,6 +30,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta8" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AI.OpenAI" Version="1.0.0-beta8" />
+	<PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.0.0-beta8" />
     <PackageReference Include="Spectre.Console" Version="0.48.1-preview.0.5" />
     <PackageReference Include="Spectre.Console.Analyzer" Version="0.48.1-preview.0.5">
       <PrivateAssets>all</PrivateAssets>
@@ -42,7 +43,10 @@
   <ItemGroup>
     <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
     <ProjectReference Include="..\BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj" />
-    <ProjectReference Include="..\BatComputer.Kernel\BatComputer.Kernel.csproj" />
+    <ProjectReference Include="..\BatComputer.Kernel.FileMemoryStore\BatComputer.Memory.FileMemoryStore.csproj" />
+    <ProjectReference Include="..\BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj" />
+    <ProjectReference Include="..\BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj" />
+    <ProjectReference Include="..\BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj" />
     <ProjectReference Include="..\BatComputer.Skins\BatComputer.ConsoleApp.Skins.csproj" />
     <ProjectReference Include="..\BatComputer.Speech\BatComputer.Speech.csproj" />
   </ItemGroup>

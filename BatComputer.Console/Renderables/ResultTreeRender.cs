@@ -44,7 +44,7 @@ public static class ResultTreeRenderer
             if (summary.ActionVariables.Any())
             {
                 TreeNode varNode = node.AddNode($"[{skin.NormalStyle}]Parameters[/]");
-                foreach (KeyValuePair<string, string> kvp in summary.ActionVariables)
+                foreach (KeyValuePair<string, string?> kvp in summary.ActionVariables)
                 {
                     varNode.AddNode($"[{skin.AccentStyle}]{Markup.Escape(kvp.Key)}[/]: [{skin.DebugStyle}]{Markup.Escape(kvp.Value.GetValueText())}[/]");
                 }
@@ -59,7 +59,7 @@ public static class ResultTreeRenderer
         tree.AddNode($"[{skin.NormalStyle}]Output[/]: [{skin.SuccessStyle}]{GetValueText(result.Output ?? "None")}[/]");
     }
 
-    private static string GetValueText(this string value)
+    private static string GetValueText(this string? value)
     {
         const int MaxShortLength = 140;
 

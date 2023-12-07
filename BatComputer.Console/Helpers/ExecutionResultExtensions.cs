@@ -4,7 +4,7 @@ using Microsoft.SemanticKernel.Planning;
 using Newtonsoft.Json.Linq;
 using System.Text;
 
-namespace MattEland.BatComputer.Kernel;
+namespace MattEland.BatComputer.ConsoleApp.Helpers;
 
 public static class ExecutionResultExtensions
 {
@@ -33,12 +33,12 @@ public static class ExecutionResultExtensions
         else if (plan.Steps != null && plan.Steps.Any())
         {
             executionResult.Summary = plan.Steps.Select(step => new StepSummary
-                {
-                    Action = step.Name,
-                    Thought = step.Description,
-                    Observation = GetOutputObservations(step, plan),
-                    ActionVariables = GetInputVariables(step, plan),
-                }).ToList();
+            {
+                Action = step.Name,
+                Thought = step.Description,
+                Observation = GetOutputObservations(step, plan),
+                ActionVariables = GetInputVariables(step, plan),
+            }).ToList();
         }
 
         if (result.TryGetMetadataValue("functionCount", out string functionCount))
@@ -77,7 +77,7 @@ public static class ExecutionResultExtensions
             if (!string.IsNullOrEmpty(kvp.Value))
             {
                 results[kvp.Key] = kvp.Value;
-            } 
+            }
             else if (plan.State.TryGetValue(kvp.Key, out string? value))
             {
                 results[kvp.Key] = value;
@@ -104,11 +104,11 @@ public static class ExecutionResultExtensions
             if (plan.State.TryGetValue(output, out string? value))
             {
                 sb.Append($"${output}: {value}");
-            } 
+            }
             else
             {
                 sb.Append($"${output}: {output} is not defined");
-            }            
+            }
         }
 
         return sb.ToString();

@@ -1,7 +1,7 @@
 ﻿using MattEland.BatComputer.Kernel;
 using Microsoft.Extensions.Logging;
 
-namespace MattEland.BatComputer.ConsoleApp;
+namespace MattEland.BatComputer.ConsoleApp.Logging;
 
 public class BatComputerLoggerFactory : ILoggerFactory
 {

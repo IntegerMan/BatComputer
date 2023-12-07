@@ -1,4 +1,4 @@
-﻿namespace MattEland.BatComputer.Kernel.ContentFiltering;
+﻿namespace MattEland.BatComputer.Abstractions.ContentFiltering;
 
 public class ContentFilterResult
 {
