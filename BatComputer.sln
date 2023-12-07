@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Plugins.Session
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Speech", "BatComputer.Speech\BatComputer.Speech.csproj", "{2E32CFF4-A703-4252-A75B-DFDAC4DC3306}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Memory.FileMemoryStore", "BatComputer.Kernel.FileMemoryStore\BatComputer.Memory.FileMemoryStore.csproj", "{78064BBC-1F4D-45B8-817E-086055D559FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BatComputer.Memory.FileMemoryStore", "BatComputer.Memory.FileMemoryStore\BatComputer.Memory.FileMemoryStore.csproj", "{78064BBC-1F4D-45B8-817E-086055D559FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

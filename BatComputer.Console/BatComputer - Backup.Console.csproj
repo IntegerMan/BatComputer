@@ -43,7 +43,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BatComputer.Abstractions\BatComputer.Abstractions.csproj" />
     <ProjectReference Include="..\BatComputer.ConsoleApp.Abstractions\BatComputer.ConsoleApp.Abstractions.csproj" />
-    <ProjectReference Include="..\BatComputer.Memory.FileMemoryStore\BatComputer.Memory.FileMemoryStore.csproj" />
     <ProjectReference Include="..\BatComputer.Plugins.Sessionize\BatComputer.Plugins.Sessionize.csproj" />
     <ProjectReference Include="..\BatComputer.Plugins.Vision\BatComputer.Plugins.Vision.csproj" />
     <ProjectReference Include="..\BatComputer.Plugins.Weather\BatComputer.Plugins.Weather.csproj" />
