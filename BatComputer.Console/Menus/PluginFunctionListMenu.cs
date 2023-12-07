@@ -14,11 +14,11 @@ public class PluginFunctionListMenu : MenuBase
     {
         get
         {
-            foreach (var func in App.Kernel!.Kernel.Functions.GetFunctionViews()
-                .Where(f => f.PluginName == PluginName && !App.Kernel.IsFunctionExcluded(f))
+            foreach (var func in Kernel.Functions.GetFunctionViews()
+                .Where(f => f.PluginName == PluginName && !App.IsFunctionExcluded(f))
                 .OrderBy(f => f.Name))
             {
-                if (App.Kernel!.Kernel.Functions.TryGetFunction(func.PluginName, func.Name, out ISKFunction? skFunc))
+                if (Kernel.Functions.TryGetFunction(func.PluginName, func.Name, out ISKFunction? skFunc))
                 {
                     yield return new ExecuteFunctionCommand(App, func, skFunc);
                 }

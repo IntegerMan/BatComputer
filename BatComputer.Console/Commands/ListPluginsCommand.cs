@@ -1,13 +1,12 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Renderables;
-using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ListPluginsCommand : AppCommand
 {
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
-        kernel.RenderKernelPluginsTable(Skin);
+        KernelPluginsRenderer.RenderKernelPluginsTable(Kernel, Skin, App);
 
         return Task.CompletedTask;
     }

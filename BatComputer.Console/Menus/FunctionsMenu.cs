@@ -14,8 +14,8 @@ public class FunctionsMenu : MenuBase
         {
             yield return new ListPluginsCommand(App);
 
-            foreach (var plugin in App.Kernel!.Kernel.Functions.GetFunctionViews()
-                .Where(f => !App.Kernel.IsFunctionExcluded(f))
+            foreach (var plugin in Kernel.Functions.GetFunctionViews()
+                .Where(f => !App.IsFunctionExcluded(f))
                 .GroupBy(f => f.PluginName)
                 .OrderBy(f => f.Key))
             {

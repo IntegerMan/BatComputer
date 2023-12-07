@@ -1,5 +1,4 @@
-﻿using MattEland.BatComputer.Kernel;
-using Microsoft.SemanticKernel;
+﻿using Microsoft.SemanticKernel;
 using Spectre.Console;
 using System.Text;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
@@ -8,9 +7,9 @@ namespace MattEland.BatComputer.ConsoleApp.Renderables;
 
 public static class KernelPluginsRenderer
 {
-    public static void RenderKernelPluginsChart(this AppKernel kernel, ConsoleSkin skin)
+    public static void RenderKernelPluginsChart(this IKernel kernel, ConsoleSkin skin, BatComputerApp app)
     {
-        List<FunctionView> funcs = GetActiveFunctions(kernel);
+        List<FunctionView> funcs = GetActiveFunctions(kernel, app);
 
         string headerMarker = $"[{skin.NormalStyle}]{funcs.Count} Plugin Functions Detected[/]";
 
@@ -26,11 +25,12 @@ public static class KernelPluginsRenderer
             .AddItems(funcsByPlugin, item => new BarChartItem(item.Key, item.Count(), color: ++index % 2 == 0 ? skin.ChartColor1 : skin.ChartColor2)));
 
         AnsiConsole.WriteLine();
+        AnsiConsole.WriteLine();
     }
 
-    public static void RenderKernelPluginsTable(this AppKernel kernel, ConsoleSkin skin)
+    public static void RenderKernelPluginsTable(this IKernel kernel, ConsoleSkin skin, BatComputerApp app)
     {
-        List<FunctionView> funcs = GetActiveFunctions(kernel);
+        List<FunctionView> funcs = GetActiveFunctions(kernel, app);
 
         string headerMarker = $"[{skin.NormalStyle}]{funcs.Count} Plugin Functions Detected[/]";
 
@@ -65,11 +65,11 @@ public static class KernelPluginsRenderer
         AnsiConsole.WriteLine();
     }
 
-    private static List<FunctionView> GetActiveFunctions(AppKernel kernel)
+    private static List<FunctionView> GetActiveFunctions(IKernel kernel, BatComputerApp app)
     {
-        IReadOnlyList<FunctionView> functions = kernel.Kernel.Functions.GetFunctionViews();
+        IReadOnlyList<FunctionView> functions = kernel.Functions.GetFunctionViews();
 
-        return functions.Where(f => !kernel.IsFunctionExcluded(f))
+        return functions.Where(f => !app.IsFunctionExcluded(f))
                         .OrderBy(f => f.PluginName)
                         .ThenBy(f => f.Name)
                         .ToList();

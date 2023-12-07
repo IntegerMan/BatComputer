@@ -1,6 +1,5 @@
 ﻿using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.ConsoleApp.Abstractions;
-using MattEland.BatComputer.Kernel;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
@@ -10,12 +9,10 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 /// </summary>
 public class ChangePlannerCommand : AppCommand
 {
-    public string Title { get; }
-
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
-        PlannerStrategy planner = SelectPlanner(Skin);
-        kernel.SwitchPlanner(planner);
+        PlannerStrategy strategy = SelectPlanner(Skin);
+        App.Planner = strategy.BuildPlanner(Kernel);
 
         return Task.CompletedTask;
     }

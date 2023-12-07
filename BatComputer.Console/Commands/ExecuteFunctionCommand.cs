@@ -1,5 +1,4 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Spectre.Console;
@@ -16,11 +15,11 @@ public class ExecuteFunctionCommand : AppCommand
         _skFunction = skFunc;
     }
 
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         try
         {
-            SKContext context = App.Kernel!.Kernel.CreateNewContext();
+            SKContext context = Kernel.CreateNewContext();
 
             foreach (ParameterView parameter in _funcView.Parameters)
             {

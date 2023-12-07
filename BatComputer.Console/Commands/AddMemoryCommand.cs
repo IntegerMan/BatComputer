@@ -1,5 +1,4 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using Spectre.Console;
@@ -16,7 +15,7 @@ public class AddMemoryCommand : AppCommand
         this._memory = memory;
     }
 
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         try
         {

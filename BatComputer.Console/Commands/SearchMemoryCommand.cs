@@ -13,7 +13,7 @@ public class SearchMemoryCommand : AppCommand
         CollectionName = collectionName;
     }
 
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         try
         {
@@ -56,5 +56,5 @@ public class SearchMemoryCommand : AppCommand
 
     public string CollectionName { get; }
 
-    public override bool CanExecute(AppKernel kernel) => false;// kernel?.Memory != null && kernel.MemoryCollectionName != null!;
+    public override bool CanExecute() => false;// kernel?.Memory != null && kernel.MemoryCollectionName != null!;
 }

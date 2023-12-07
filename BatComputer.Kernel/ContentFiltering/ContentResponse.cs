@@ -1,4 +1,4 @@
-﻿using MattEland.BatComputer.Kernel.ContentFiltering;
+﻿namespace MattEland.BatComputer.Kernel.ContentFiltering;
 
 public class ContentResponse
 {

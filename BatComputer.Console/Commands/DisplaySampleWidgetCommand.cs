@@ -1,6 +1,5 @@
 ﻿using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
@@ -9,7 +8,7 @@ public class DisplaySampleWidgetCommand : AppCommand
     private readonly Func<IWidget> _widgetFactory;
     private readonly string _widgetName;
 
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
         IWidget widget = _widgetFactory();
         widget.UseSampleData();

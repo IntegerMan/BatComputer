@@ -11,7 +11,7 @@ public class ExitCommand : AppCommand
     public string Title { get; }
     public bool Confirm { get; }
 
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
         // TODO: I could re-implement some of the built-in confirm dialog to expose the choice style so it's not blue by default
         if (!Confirm || AnsiConsole.Confirm("Are you sure you want to quit?"))

@@ -1,11 +1,13 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Abstractions;
-using MattEland.BatComputer.Kernel;
+using Microsoft.SemanticKernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public abstract class AppCommand
 {
     public BatComputerApp App { get; }
+
+    public IKernel Kernel => App.Kernel!;
 
     public ConsoleSkin Skin => App.Skin;
 
@@ -16,9 +18,9 @@ public abstract class AppCommand
 
     public virtual string DisplayText => GetType().Name;
 
-    public virtual bool CanExecute(AppKernel kernel) => true;
+    public virtual bool CanExecute() => true;
 
-    public abstract Task ExecuteAsync(AppKernel kernel);
+    public abstract Task ExecuteAsync();
 
     public override string ToString() => DisplayText;
 }

@@ -1,18 +1,17 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Renderables;
-using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ShowPlanTreeCommand : AppCommand
 {
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
-        kernel.LastPlan!.RenderTree(Skin);
+        App.LastPlan!.RenderTree(Skin);
 
         return Task.CompletedTask;
     }
 
-    public override bool CanExecute(AppKernel kernel) => kernel.LastPlan != null;
+    public override bool CanExecute() => App.LastPlan != null;
 
     public ShowPlanTreeCommand(BatComputerApp app) : base(app)
     {

@@ -6,10 +6,10 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ShowExplanationCommand : AppCommand
 {
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
         int step = 1;
-        foreach (StepSummary summary in kernel.LastResult?.Summary.Where(t => !string.IsNullOrWhiteSpace(t.Thought)) ?? Enumerable.Empty<StepSummary>())
+        foreach (StepSummary summary in App.LastResult?.Summary.Where(t => !string.IsNullOrWhiteSpace(t.Thought)) ?? Enumerable.Empty<StepSummary>())
         {
             if (string.IsNullOrEmpty(summary.Thought))
                 continue;
@@ -26,8 +26,8 @@ public class ShowExplanationCommand : AppCommand
         return Task.CompletedTask;
     }
 
-    public override bool CanExecute(AppKernel kernel) 
-        => kernel.LastResult?.Summary.Select(s => s.Thought).Any(t => !string.IsNullOrEmpty(t)) ?? false;
+    public override bool CanExecute() 
+        => App.LastResult?.Summary.Select(s => s.Thought).Any(t => !string.IsNullOrEmpty(t)) ?? false;
 
     public ShowExplanationCommand(BatComputerApp app) : base(app)
     {

@@ -1,14 +1,13 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class VoiceCommand : AppCommand
 {
-    public override bool CanExecute(AppKernel kernel) => App.Settings.SupportsAiServices && App.Speech != null;
+    public override bool CanExecute() => App.Settings.SupportsAiServices && App.Speech != null;
 
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         string? prompt = null;
         await AnsiConsole.Status().StartAsync("Listening…", async ctx =>

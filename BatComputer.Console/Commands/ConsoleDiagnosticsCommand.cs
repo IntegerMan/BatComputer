@@ -1,12 +1,11 @@
 ﻿using Dumpify;
-using MattEland.BatComputer.Kernel;
 using Spectre.Console;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ConsoleDiagnosticsCommand : AppCommand
 {
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
         AnsiConsole.Profile.Capabilities.Dump(label: $"{AnsiConsole.Profile.Width}x{AnsiConsole.Profile.Height} Console Dimensions");
 

@@ -1,5 +1,4 @@
-﻿using MattEland.BatComputer.Kernel;
-using MattEland.BatComputer.Kernel.FileMemoryStore;
+﻿using MattEland.BatComputer.Kernel.FileMemoryStore;
 using Microsoft.SemanticKernel.Memory;
 using Spectre.Console;
 
@@ -14,7 +13,7 @@ public class ShowMemoryCommand : AppCommand
         _memory = memory;
     }
 
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         // Normally you can't get at the keys in memory easily, but I've exposed them for demo / debugging purposes in FileBackedMemory
         FileBackedMemory? fileMem = _memory as FileBackedMemory;

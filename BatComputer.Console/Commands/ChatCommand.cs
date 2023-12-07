@@ -1,11 +1,10 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ChatCommand : AppCommand
 {
-    public override async Task ExecuteAsync(AppKernel kernel)
+    public override async Task ExecuteAsync()
     {
         string prompt = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Type your request:[/]", addEmptyLine: false);
 

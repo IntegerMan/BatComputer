@@ -1,12 +1,11 @@
 ﻿using MattEland.BatComputer.Abstractions.Widgets;
 using MattEland.BatComputer.ConsoleApp.Helpers;
-using MattEland.BatComputer.Kernel;
 
 namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class DisplayAllWidgetsCommand : AppCommand
 {
-    public override Task ExecuteAsync(AppKernel kernel)
+    public override Task ExecuteAsync()
     {
         IEnumerable<Type> widgetTypes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(assembly => assembly.GetTypes())
