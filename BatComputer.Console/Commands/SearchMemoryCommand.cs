@@ -8,22 +8,23 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class SearchMemoryCommand : AppCommand
 {
-    public SearchMemoryCommand(BatComputerApp app) : base(app)
+    public SearchMemoryCommand(BatComputerApp app, string collectionName) : base(app)
     {
+        CollectionName = collectionName;
     }
 
     public override async Task ExecuteAsync(AppKernel kernel)
     {
         try
         {
-            string collection = App.Kernel!.MemoryCollectionName!;// InputHelpers.GetUserText($"[{Skin.NormalStyle}]Collection Name:[/]");
+            string collection = CollectionName;
             string query = InputHelpers.GetUserText($"[{Skin.NormalStyle}]Query:[/]");
 
             List<MemoryQueryResult> results = new();
             await AnsiConsole.Status().StartAsync($"Searching memory…", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
-                IAsyncEnumerable<MemoryQueryResult>? asyncResults = App.Kernel!.Memory!.SearchAsync(collection, query, limit: 10);
+                IAsyncEnumerable<MemoryQueryResult>? asyncResults = AsyncEnumerable.Empty<MemoryQueryResult>();// App.Kernel!.Memory!.SearchAsync(collection, query, limit: 10);
 
                 await foreach (MemoryQueryResult result in asyncResults)
                 {
@@ -53,5 +54,7 @@ public class SearchMemoryCommand : AppCommand
 
     public override string DisplayText => "Search Memory";
 
-    public override bool CanExecute(AppKernel kernel) => kernel?.Memory != null && kernel.MemoryCollectionName != null!;
+    public string CollectionName { get; }
+
+    public override bool CanExecute(AppKernel kernel) => false;// kernel?.Memory != null && kernel.MemoryCollectionName != null!;
 }

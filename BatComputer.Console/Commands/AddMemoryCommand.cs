@@ -1,5 +1,6 @@
 ﻿using MattEland.BatComputer.ConsoleApp.Helpers;
 using MattEland.BatComputer.Kernel;
+using Microsoft.SemanticKernel.Memory;
 using Newtonsoft.Json;
 using Spectre.Console;
 
@@ -7,8 +8,12 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class AddMemoryCommand : AppCommand
 {
-    public AddMemoryCommand(BatComputerApp app) : base(app)
+    private readonly ISemanticTextMemory _memory;
+
+    public AddMemoryCommand(BatComputerApp app, string collectionName, ISemanticTextMemory memory) : base(app)
     {
+        CollectionName = collectionName;
+        this._memory = memory;
     }
 
     public override async Task ExecuteAsync(AppKernel kernel)
@@ -23,7 +28,7 @@ public class AddMemoryCommand : AppCommand
             await AnsiConsole.Status().StartAsync($"Saving memory…", async ctx =>
             {
                 ctx.Spinner = Skin.Spinner;
-                result = await App.Kernel!.Memory!.SaveInformationAsync(kernel.MemoryCollectionName!, information, id, description);
+                result = await _memory.SaveInformationAsync(CollectionName!, information, id, description);
             });
 
             AnsiConsole.WriteLine();
@@ -31,7 +36,7 @@ public class AddMemoryCommand : AppCommand
             AnsiConsole.WriteLine();
 
             // For now, let's serialize our memory store for diagnostics
-            File.WriteAllText("memory.json", JsonConvert.SerializeObject(App.Kernel!.MemoryStore, Formatting.Indented));
+            File.WriteAllText("memory.json", JsonConvert.SerializeObject(_memory, Formatting.Indented));
         }
         catch (Exception ex)
         {
@@ -41,5 +46,5 @@ public class AddMemoryCommand : AppCommand
 
     public override string DisplayText => "Add Memory";
 
-    public override bool CanExecute(AppKernel kernel) => kernel?.Memory != null && kernel.MemoryCollectionName != null!;
+    public string CollectionName { get; }
 }

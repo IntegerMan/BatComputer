@@ -7,14 +7,17 @@ namespace MattEland.BatComputer.ConsoleApp.Commands;
 
 public class ShowMemoryCommand : AppCommand
 {
-    public ShowMemoryCommand(BatComputerApp app) : base(app)
+    private readonly ISemanticTextMemory _memory;
+
+    public ShowMemoryCommand(BatComputerApp app, ISemanticTextMemory memory) : base(app)
     {
+        _memory = memory;
     }
 
     public override async Task ExecuteAsync(AppKernel kernel)
     {
         // Normally you can't get at the keys in memory easily, but I've exposed them for demo / debugging purposes in FileBackedMemory
-        FileBackedMemory? fileMem = App.Kernel?.MemoryStore as FileBackedMemory;
+        FileBackedMemory? fileMem = _memory as FileBackedMemory;
         if (fileMem != null)
         {
             DisplayMemoryStore(fileMem);
@@ -46,13 +49,11 @@ public class ShowMemoryCommand : AppCommand
 
     private async Task DisplayMemoryAsync()
     {
-        ISemanticTextMemory memory = App.Kernel!.Memory!;
-
         IList<string> collections = new List<string>(0);
         await AnsiConsole.Status().StartAsync($"Getting collections…", async ctx =>
         {
             ctx.Spinner = Skin.Spinner;
-            collections = await memory.GetCollectionsAsync();
+            collections = await _memory.GetCollectionsAsync();
         });
 
         if (!collections.Any())
@@ -70,6 +71,4 @@ public class ShowMemoryCommand : AppCommand
     }
 
     public override string DisplayText => "Show Memories";
-
-    public override bool CanExecute(AppKernel kernel) => kernel?.Memory != null;
 }

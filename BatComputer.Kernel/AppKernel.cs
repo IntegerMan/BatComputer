@@ -1,6 +1,5 @@
 ﻿using MattEland.BatComputer.Abstractions.Strategies;
 using MattEland.BatComputer.Kernel.ContentFiltering;
-using MattEland.BatComputer.Kernel.FileMemoryStore;
 using MattEland.BatComputer.Kernel.Plugins;
 using MattEland.BatComputer.Plugins.Sessionize;
 using MattEland.BatComputer.Plugins.Vision;
@@ -11,10 +10,8 @@ using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 using Microsoft.SemanticKernel.Diagnostics;
-using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Planning;
-using Microsoft.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Plugins.Web.Bing;
 using System.Text.Json;
@@ -28,8 +25,6 @@ public class AppKernel
     public IKernel Kernel { get; }
 
     public Plan? LastPlan { get; private set; }
-
-    public ISemanticTextMemory? Memory { get; private set; }
 
     public AppKernel(KernelSettings settings, PlannerStrategy? plannerStrategy, ILoggerFactory loggerFactory)
     {
@@ -49,19 +44,6 @@ public class AppKernel
 
         // Semantic Kernel doesn't have a good common abstraction around its planners, so I'm using an abstraction layer around the various planners
         _planner = plannerStrategy?.BuildPlanner(Kernel);
-
-        // Memory is important for providing additional context
-        if (settings.SupportsMemory)
-        {
-            MemoryCollectionName = settings.EmbeddingCollectionName;
-            MemoryStore = new FileBackedMemory("MemoryStore.json");
-            Memory = new MemoryBuilder()
-                .WithLoggerFactory(loggerFactory)
-                .WithAzureOpenAITextEmbeddingGenerationService(settings.EmbeddingDeploymentName!, settings.AzureOpenAiEndpoint, settings.AzureOpenAiKey) // TODO: Local embedding would be better
-                .WithMemoryStore(MemoryStore)
-                .Build();
-            // Kernel.ImportFunctions(new TextMemoryPlugin(Memory), "Memory");
-        }
 
         // TODO: Ultimately detection of plugins should come from outside of the app, aside from the chat plugin
         Kernel.ImportFunctions(new TimeContextPlugins(), "Time");
@@ -83,7 +65,7 @@ public class AppKernel
 
         if (settings.SupportsSessionize)
         {
-            Kernel.ImportFunctions(new SessionizePlugin(Memory, settings.SessionizeToken!), "Sessionize");
+            Kernel.ImportFunctions(new SessionizePlugin(null, settings.SessionizeToken!), "Sessionize");
         }
     }
 
@@ -96,9 +78,6 @@ public class AppKernel
         => f.PluginName.Contains("_Excluded", StringComparison.OrdinalIgnoreCase);
 
     public PlanExecutionResult? LastResult { get; set; }
-
-    public string? MemoryCollectionName { get; } = "BatComputer";
-    public IMemoryStore? MemoryStore { get; }
 
     public async Task<string> ExecuteAsync(string userText)
     {
